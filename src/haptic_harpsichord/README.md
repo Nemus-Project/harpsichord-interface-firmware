@@ -1,34 +1,14 @@
-# NEMUS Harpsichord Firmware
+# Haptic Harpsichord Firmware
 
-## Firmware
+This documentation contain information for developing and deploying the firmware for the Haptic Harpsichord MIDI Controller
 
-All firmware in `src/` directory which consists of
+## Wiring
 
-- `src/haptic_harpsichord/`: main firmware for the 49-key model
-- `src/prototyping/`: firmware used through the prototyping process
-- `src/tests/`: component functionaliy and diagnostics tests
-
-
-### `haptic_harpsichord/`
-
-This is the full firmware for the haptic harpsochord using the Arduino IDE.
-
-Firmware was written around use of an Arduino Nano 33 BLE with some accomodation for an ESP32.
-
-#### Components
-
-- QRE1113
-- 10 kΩ Potentiometer
-- MB85RS64 SPI Non-Volatile FRAM 
-- Rotary Encoder w/ tactile switch
-- CD4051BE multiplexer
-- WS2812B RGB LEDs
-
-#### Wiring Table
-
+Pin layout adheres to the Arduino nano form factor
+  
 | Connection      | Pin   |
 | --------------- | ----- |
-| NC              | D13   |
+| EEPROM SPI CLK  | D13   |
 | EEPROM VCC      | 3.3v  |
 | AREF POT Switch | AREF  |
 | PCB 0 QRE1113   | A0    |
@@ -52,11 +32,21 @@ Firmware was written around use of an Arduino Nano 33 BLE with some accomodation
 | Mux C           | D8      |
 | Mux B           | D7      |
 | Mux A           | D6      |
-| EEPROM SPI CLK  | D5      |
+| Mux Interrupt   | D5      |
 | EEPROM SPI MISO | D4      |
 | EEPROM SPI MOSI | D3      |
 | EEPROM SPI CS   | D2      |
 | NC              | RX / D1 |
 | NC              | TX / D0 |
 
-†_NC_: Not Connected
+## MIDI
+
+## Power
+
+The Arduino and the circuit are to be powered by 5V 5A PSU.
+
+## Troubleshoooting
+
+### Sensor Data Noise
+
+If the sensors seem to return random noise and do not respond to an IR LED it is possible the interrupt for the multiplexers is not connected or is at a positive voltage. Ground the INT pin of the multiplexer.
