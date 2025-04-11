@@ -1,5 +1,5 @@
 /*
-  Haptic Harposchord
+  Haptic Harpsichord
 
   This is the full firmware for the haptic harpsochord using the arduino IDE development platform
 

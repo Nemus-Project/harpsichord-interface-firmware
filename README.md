@@ -1,4 +1,4 @@
-# NEMUS Harpsichord Firmware
+# NEMUS Harpsichord Interface Firmware
 
 ## Firmware
 
