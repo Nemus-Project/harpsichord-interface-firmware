@@ -14,13 +14,6 @@ void updateJackStates() {
     else if (prevSensorReadings[i] > pluckThresholds[i] and currSensorReadings[i] > pluckThresholds[i])
       jackStates[i] = PLUCKED;
   }
-
-  // if (prevSensorReadings[0] > pluckThresholds[0] and currSensorReadings[0] < pluckThresholds[0])
-  //   jackStates[0] = RELEASING;
-  // if (prevSensorReadings[1] > pluckThresholds[1] and currSensorReadings[1] < pluckThresholds[1])
-  //   jackStates[1] = RELEASING;
-  // if (prevSensorReadings[2] > pluckThresholds[2] and currSensorReadings[2] < pluckThresholds[2])
-  //   jackStates[2] = RELEASING;
 }
 
 void checkJackStates() {

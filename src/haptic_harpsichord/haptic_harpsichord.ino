@@ -73,6 +73,12 @@ enum JackState {
   RELEASED,
   UNKNOWN_KEY_STATE
 };
+
+enum RotaryMode {
+  KEY_SELECT,
+  EDIT_PLUCK_THRESHOLD,
+  EDIT_RELEASE_THRESHOLD,
+};
 //-----------------------------------------------------------------------------
 #define numSensors 49
 #define numMuxChannels 7
@@ -92,6 +98,7 @@ bool executeDebugMode = false;
 //-----------------------------------------------------------------------------
 // Operation Mode Variables
 bool isKeySelectMode = true;
+RotaryMode currenRotaryMode = KEY_SELECT;
 uint8_t curKeyIndex = key2index(25);
 //-----------------------------------------------------------------------------
 // Multiplexer Variables
@@ -109,7 +116,8 @@ uint16_t sensorAvgMaxima[numSensors];
 uint16_t sensorAvgMinima[numSensors];
 uint16_t pluckThresholds[numSensors];
 uint16_t releaseThresholds[numSensors];
-uint16_t defaultThreshold = 420;
+uint16_t defaultPluckThreshold = 420;
+uint16_t defaultReleaseThreshold = 400;
 uint32_t readCount = 0;
 uint64_t lastRead = 0;
 constexpr byte avgSize = 4;
@@ -130,9 +138,10 @@ const size_t ledPin = 9;
 Adafruit_NeoPixel leds(numSensors, ledPin, NEO_GRB + NEO_KHZ800);
 unsigned long now = 0;
 static int step = 0;
-const uint32_t selectModeColor = leds.Color(0, 0, 100);
-const uint32_t editModeColor = leds.Color(0, 100, 0);
-uint32_t currentLedColor = selectModeColor;
+const uint32_t keySelectColor            = leds.Color(0, 0, 100);
+const uint32_t editPluckThresholdColor   = leds.Color(0, 100, 0);
+const uint32_t editReleaseThresholdColor = leds.Color(100, 0, 100);
+uint32_t currentLedColor = keySelectColor;
 //-----------------------------------------------------------------------------
 // Rotary Variables
 const byte ROTARY_PINC = 12;
@@ -153,11 +162,12 @@ const uint8_t FRAM_MISO = 4;
 const uint8_t FRAM_SCK = 5;
 Adafruit_FRAM_SPI fram = Adafruit_FRAM_SPI(FRAM_SCK, FRAM_MISO, FRAM_MOSI, FRAM_CS);
 const uint8_t addrSizeInBytes = 2;  // Default to address size of two bytes
-const uint16_t tagAddress = 0;
-const uint8_t thresholdTag[4] = { 'D', 'A', 'T', 'A' };
-// const uint8_t maxTag[4] = { 'M', 'A', 'X', 'I' };
-// const uint8_t minTag[4] = { 'M', 'I', 'N', 'I' };
-const uint16_t pluckValAddress = tagAddress + 4;
+const uint8_t pluckTag[4] = { 'D', 'A', 'T', 'A' };
+const uint8_t releaseTag[4] = { 'M', 'I', 'N', 'I' };
+const uint16_t pluckTagAddress = 0;
+const uint16_t pluckValAddress = pluckTagAddress + 4;
+const uint16_t releaseTagAddress = sizeof(pluckTag) + numSensors*2;
+const uint16_t releaseValAddress = releaseTagAddress + 4;
 const bool overwriteFram = false;
 
 unsigned long times[1024] = { 0 };
@@ -207,16 +217,17 @@ void loop() {
   keyboardLoop();
 }
 
-
 void keyboardLoop() {
   readAllSensors();
   rotary.loop();
   button.loop();
 
   for (int i = 0; i < numSensors; i++) {
-    if (currSensorReadings[i] < pluckThresholds[i] and prevSensorReadings[i] > pluckThresholds[i]) {
+    if (currSensorReadings[i] < releaseThresholds[i] and prevSensorReadings[i] > releaseThresholds[i] and jackStates[i] != RELEASED) {
+      jackStates[i] = RELEASED;
       noteOff(0, index2note(i), 100);
-    } else if (currSensorReadings[i] > pluckThresholds[i] and prevSensorReadings[i] < pluckThresholds[i]) {
+    } else if (currSensorReadings[i] > pluckThresholds[i] and prevSensorReadings[i] < pluckThresholds[i] and jackStates[i] != PLUCKED) {
+      jackStates[i] = PLUCKED;
       noteOn(0, index2note(i), 100);
     }
   }

@@ -34,8 +34,13 @@ void plotKeyData(byte index) {
   Serial.print(currSensorReadings[index]);
   Serial.print(' ');
   
-  Serial.print("T");
+  Serial.print("P");
   Serial.print(index2key(index));
   Serial.print(":");
   Serial.println(pluckThresholds[index]);
+
+  Serial.print("R");
+  Serial.print(index2key(index));
+  Serial.print(":");
+  Serial.println(releaseThresholds[index]);
 }
