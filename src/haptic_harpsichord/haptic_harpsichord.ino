@@ -61,7 +61,8 @@
 // Local Headers
 #include "error_codes.h"
 //-----------------------------------------------------------------------------
-#define ALWAYS_DEBUG true
+const bool FRONT_REGSISTER = false;
+const bool ALWAYS_DEBUG  = false;
 //-----------------------------------------------------------------------------
 // Enums
 enum JackState {
@@ -82,7 +83,7 @@ enum JackState {
 #endif
 //-----------------------------------------------------------------------------
 constexpr byte key2index(byte k);
-byte index2note(byte index, byte transpose = 0);
+byte index2note(byte index, int8_t transpose = 0);
 void rotate(Rotary& r);
 //-----------------------------------------------------------------------------
 // Config Variables
@@ -108,13 +109,14 @@ uint16_t sensorAvgMaxima[numSensors];
 uint16_t sensorAvgMinima[numSensors];
 uint16_t pluckThresholds[numSensors];
 uint16_t releaseThresholds[numSensors];
+uint16_t defaultThreshold = 420;
 uint32_t readCount = 0;
 uint64_t lastRead = 0;
 constexpr byte avgSize = 4;
 uint16_t sensorWindowReadings[numSensors][avgSize];
 byte windex = 0;
-uint16_t* prevSensorReadings = sensorReadingsB;
-uint16_t* currSensorReadings = sensorReadingsA;
+uint16_t* prevSensorReadings = sensorReadingsA;
+uint16_t* currSensorReadings = sensorReadingsB;
 //-----------------------------------------------------------------------------
 // Jack States
 JackState jackStatesA[numSensors];
@@ -128,7 +130,9 @@ const size_t ledPin = 9;
 Adafruit_NeoPixel leds(numSensors, ledPin, NEO_GRB + NEO_KHZ800);
 unsigned long now = 0;
 static int step = 0;
-
+const uint32_t selectModeColor = leds.Color(0, 0, 100);
+const uint32_t editModeColor = leds.Color(0, 100, 0);
+uint32_t currentLedColor = selectModeColor;
 //-----------------------------------------------------------------------------
 // Rotary Variables
 const byte ROTARY_PINC = 12;
@@ -154,8 +158,9 @@ const uint8_t thresholdTag[4] = { 'D', 'A', 'T', 'A' };
 // const uint8_t maxTag[4] = { 'M', 'A', 'X', 'I' };
 // const uint8_t minTag[4] = { 'M', 'I', 'N', 'I' };
 const uint16_t pluckValAddress = tagAddress + 4;
+const bool overwriteFram = false;
 
-unsigned long times[1024] = {0};
+unsigned long times[1024] = { 0 };
 //-----------------------------------------------------------------------------
 // MIDI Variables
 USBMIDI MidiUSB;
@@ -180,22 +185,18 @@ void setup() {
   digitalWrite(LEDG, HIGH);
   digitalWrite(LEDB, HIGH);
 
-  for (int i = 0; i < numSensors; i++) {
-    sensorAvgMinima[i] = 1024;
-    pluckThresholds[i] = 500;
-  }
-
   leds.begin();
   leds.clear();
-  
-  // /// setup EEPROM
-  // if (!fram.begin())
-  //   halt(FRAM_NOT_FOUND);
+  leds.show();
 
-  // readPluckFromEEPROM();
+  /// setup EEPROM
+  if (!fram.begin())
+    halt(FRAM_NOT_FOUND);
 
-  // calibrarte sensors
-  // calibrate();
+  readPluckFromEEPROM();
+
+  rotary.setChangedHandler(rotate);
+  rotary.resetPosition(curKeyIndex);
 
   if (button.isPressed() or ALWAYS_DEBUG) {
     debugLoop();
@@ -203,34 +204,22 @@ void setup() {
 }
 
 void loop() {
+  keyboardLoop();
+}
 
-  // readSensors();
-  // rotary.loop();
-  // button.loop();
 
-  // for (int i = 0; i < numSensors; i++) {
-  //   if (currSensorReadings[i] < pluckThresholds[i] and prevSensorReadings[i] > pluckThresholds[i]) {
-  //     noteOff(0, index2note(i), 100);
-  //   } else if (currSensorReadings[i] > pluckThresholds[i] and prevSensorReadings[i] < pluckThresholds[i]) {
-  //     noteOn(0, index2note(i), 100);
-  //   }
-  // }
+void keyboardLoop() {
+  readAllSensors();
+  rotary.loop();
+  button.loop();
 
-  // readCount++;
-
-  // if (readCount > 2048) {
-  //   readCount = 0;
-  //   Serial.println(millis() - lastRead);
-  //   lastRead = millis();
-  // }
-
-    if (millis() - now > 16) {
-      // rainbow(step++);
-      breath(step++);
-      now = millis();
+  for (int i = 0; i < numSensors; i++) {
+    if (currSensorReadings[i] < pluckThresholds[i] and prevSensorReadings[i] > pluckThresholds[i]) {
+      noteOff(0, index2note(i), 100);
+    } else if (currSensorReadings[i] > pluckThresholds[i] and prevSensorReadings[i] < pluckThresholds[i]) {
+      noteOn(0, index2note(i), 100);
     }
-    // rotary.loop();
-  
+  }
 }
 
 void calibrate() {

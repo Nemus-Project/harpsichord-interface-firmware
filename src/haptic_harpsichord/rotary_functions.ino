@@ -3,6 +3,10 @@
 
 void click(Button2& btn) {
   isKeySelectMode = !isKeySelectMode;
+  currentLedColor = (isKeySelectMode) ? selectModeColor : editModeColor;
+  leds.setPixelColor(curKeyIndex, currentLedColor);
+  leds.show();
+
   if (isKeySelectMode) {
     rotary.setIncrement(1);
     rotary.setUpperBound(numSensors);
@@ -19,7 +23,6 @@ void click(Button2& btn) {
 
 void doubleclick(Button2& btn) {
 
-  // executeDebugMode = false;
   // save to EEPROM
   writePluckToEEPROM();
   leds.fill(leds.Color(0, 0, 50), 0, numSensors);
@@ -32,11 +35,11 @@ void doubleclick(Button2& btn) {
 
 
 void rotate(Rotary& r) {
-  // Serial.println(r.directionToString(r.getDirection()));
+  
   if (isKeySelectMode) {
     curKeyIndex = r.getPosition();
     leds.fill(leds.Color(0, 0, 0), 0, numSensors);
-    leds.setPixelColor(curKeyIndex, 0, 0, 255);
+    leds.setPixelColor(curKeyIndex, currentLedColor);
     leds.show();
   } else {
     pluckThresholds[curKeyIndex] = r.getPosition();

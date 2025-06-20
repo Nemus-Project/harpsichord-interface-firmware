@@ -1,4 +1,4 @@
-void noteOn(byte channel, byte pitch, byte velocity) {  
+void noteOn(byte channel, byte pitch, byte velocity) {
   MidiUSB.write(MIDIMessage::NoteOn(pitch, velocity, channel));
 }
 
@@ -14,7 +14,10 @@ void aftertouch(byte channel, byte key, byte pressure) {
   MidiUSB.write(MIDIMessage::PolyphonicAftertouch(key, pressure, channel));
 }
 
-byte index2note(byte index, byte transpose)
-{
-  return numSensors - 1 - index + 48 + transpose;
+byte index2note(byte index, int8_t transpose) {
+  if (FRONT_REGSISTER) {
+    return numSensors - 1 - index + 50 + transpose;
+  } else {
+    return index + 50 + transpose;
+  }
 }
