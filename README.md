@@ -1,4 +1,5 @@
 # NEMUS Harpsichord Interface Firmware
+[![DOI](https://zenodo.org/badge/964505533.svg)](https://doi.org/10.5281/zenodo.16848270)
 
 ## Firmware
 
