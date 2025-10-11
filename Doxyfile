@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------
 # PROJECT SETTINGS
 # ----------------------------------------------------------------------
-PROJECT_NAME           = "My Arduino Project"
+PROJECT_NAME           = "NEMUS Harpsichord Interface Firmware"
 OUTPUT_DIRECTORY       = docs
 RECURSIVE              = YES
 
@@ -11,7 +11,7 @@ RECURSIVE              = YES
 # Let Doxygen treat Arduino .ino files as C++ code
 EXTENSION_MAPPING      = ino=C++
 FILE_PATTERNS          = *.ino *.h *.cpp *.hpp
-INPUT                  = src/ src/README.md
+INPUT                  = src/ README.md
 
 # ----------------------------------------------------------------------
 # MARKDOWN SUPPORT
