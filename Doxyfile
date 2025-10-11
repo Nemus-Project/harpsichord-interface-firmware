@@ -1,0 +1,28 @@
+# ----------------------------------------------------------------------
+# PROJECT SETTINGS
+# ----------------------------------------------------------------------
+PROJECT_NAME           = "My Arduino Project"
+OUTPUT_DIRECTORY       = docs
+RECURSIVE              = YES
+
+# ----------------------------------------------------------------------
+# FILE RECOGNITION
+# ----------------------------------------------------------------------
+# Let Doxygen treat Arduino .ino files as C++ code
+EXTENSION_MAPPING      = ino=C++
+FILE_PATTERNS          = *.ino *.h *.cpp *.hpp
+INPUT                  = src/ src/README.md
+
+# ----------------------------------------------------------------------
+# MARKDOWN SUPPORT
+# ----------------------------------------------------------------------
+MARKDOWN_SUPPORT       = YES
+AUTOLINK_SUPPORT       = YES
+USE_MDFILE_AS_MAINPAGE = README.md
+
+# ----------------------------------------------------------------------
+# OUTPUT OPTIONS
+# ----------------------------------------------------------------------
+GENERATE_HTML          = YES
+GENERATE_LATEX         = NO
+GENERATE_TREEVIEW      = YES

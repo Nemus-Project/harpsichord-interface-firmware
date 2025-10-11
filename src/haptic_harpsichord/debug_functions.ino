@@ -1,6 +1,23 @@
-//-----------------------------------------------------------------------------
-// Debug functions
+/**
+ * @file debug_functions.ino
+ * @brief Functions for setting, running and exiting the firmware's "debug mode"
+ *
+ * `debugLoop()` is a substitute of the main loop. `setupDebugMode()` and
+ * `exitDebug()` deal with setup and tear down of any changes to hardware behaviour.
+ * 
+ * NOTEL the intended behavour is for calibration values to be saved on exit. 
+ * If values are edited and they should not be saves, press the reset button.
+ *
+ * @date 2025-10-11
+ * @author Matthew Hamilton
+ */
 
+/**
+ * @brief Setup procedure before starying the debug loop 
+ *
+ * Sets the `executeDebugMode` flag and the onboard RGB LED of the Nano BLE as omode indicator.
+ * * Rotary encode callbacks are also set to allow for calibration.
+ */
 void setupDebugMode() {
   digitalWrite(LEDB, LOW);
   digitalWrite(LEDB, LOW);
@@ -10,8 +27,12 @@ void setupDebugMode() {
   button.setClickHandler(click);
 }
 
-
-/// run loop for debug mode
+/**
+ * @brief Debug mode programme loop
+ * 
+ * Identical to the noraml `loop` except for the added listening for rotary callbacks
+ * and Serial printing which adds to latency. 
+ */
 void debugLoop() {
   setupDebugMode();
 
@@ -68,18 +89,11 @@ void debugLoop() {
   exitDebug();
 }
 
-// void setCurrentKey() {
-//   int thresh;
-//   for (int i = 0; i < numSensors; i++) {
-//     if (readSensor(i) < thresh and i != curKeyIndex) {
-//       curKeyIndex = i;
-//       leds.fill(leds.Color(0, 0, 0), 0, numSensors);
-//       leds.setPixelColor(curKeyIndex, 0, 0, 100);
-//       leds.show();
-//     }
-//   }
-// }
-
+/**
+ * @brief 
+ * 
+ * Turn off LEDs and if any changes have been made they are written to NV RAM
+ */
 void exitDebug() {
   digitalWrite(LEDB, LOW);
   digitalWrite(LEDB, LOW);
