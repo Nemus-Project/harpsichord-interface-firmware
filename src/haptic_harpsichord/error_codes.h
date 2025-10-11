@@ -8,6 +8,7 @@
  * @author Matthew Hamilton
  */
 
+//!
 enum HapticHarpsichordErrorCodes
 {
   FRAM_NOT_FOUND, 
