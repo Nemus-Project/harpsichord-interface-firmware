@@ -1,40 +1,26 @@
-/*
-  Component Diagnostics
-
-    Confirm the connection of every component and print to serial any errors.
-
-  | Connection      | Pin   |
-  | --------------- | ----- |
-  | NC              | D13   |
-  | EEPROM VCC      | 3.3v  |
-  | AREF POT Switch | AREF  |
-  | PCB 0 QRE1113   | A0    |
-  | PCB 1 QRE1113   | A1    |
-  | PCB 2 QRE1113   | A2    |
-  | PCB 3 QRE1113   | A3    |
-  | PCB 4 QRE1113   | A4    |
-  | PCB 5 QRE1113   | A6    |
-  | PCB 6 QRE1113   | A7    |
-  | NC              | 5v    |
-  | NC              | RESET |
-  | GND             | GND   |
-  | PSU `+`         | VIN   |
-
-  | Connection      | Pin     |
-  | --------------- | ------- |
-  | Rotary CLK      | D12     |
-  | Rotary DATA     | D11     |
-  | Rotary Switch   | D10     |
-  | LED Data        | D9      |
-  | Mux C           | D8      |
-  | Mux B           | D7      |
-  | Mux A           | D6      |
-  | EEPROM SPI CLK  | D5      |
-  | EEPROM SPI MISO | D4      |
-  | EEPROM SPI MOSI | D3      |
-  | EEPROM SPI CS   | D2      |
-  | NC              | RX / D1 |
-  | NC              | TX / D0 |
+/**
+ * @file diagnostics.ino
+ * @brief Component Diagnostics
+ *
+ * Confirm the connection of every component and print to serial any errors.
+ *
+ * |     Connection | Pin Left | Pin Right | Connection      |
+ * | -------------: | -------: | :-------- | :-------------- |
+ * | EEPROM SPI CLK |      D13 | D12       | Rotary CLK      |
+ * |     EEPROM VCC |     3.3v | D11       | Rotary DATA     |
+ * |             NC |     AREF | D10       | Rotary Switch   |
+ * |          PCB 0 |       A0 | D9        | LED Data        |
+ * |          PCB 1 |       A1 | D8        | Mux C           |
+ * |          PCB 2 |       A2 | D7        | Mux B           |
+ * |          PCB 3 |       A3 | D6        | Mux A           |
+ * |          PCB 4 |       A4 | D5        | Mux Interrupt   |
+ * |          PCB 5 |       A5 | D4        | EEPROM SPI MISO |
+ * |          PCB 6 |       A6 | D3        | EEPROM SPI MOSI |
+ * |             NC |       A7 | D2        | EEPROM SPI CS   |
+ * |             NC |       5v | GND       | GND             |
+ * |             NC |    RESET | RST       | Reset Switch    |
+ * |            GND |      GND | RX / D1   | NC              |
+ * |        PSU `+` |      VIN | TX / D0   | NC              |
  */
 
 void setup() {

@@ -1,4 +1,9 @@
-// Single Jack Test
+/**
+ * @file SensorTest.ino 
+ * @brief Test a single sensor on each board
+ * 
+ */
+
 const byte numSensors = 6;
 pin_size_t sensorPins[numSensors] = { A0, A1, A2, A3, A6, A7 };
 unsigned long sensorHomeValues[numSensors];
