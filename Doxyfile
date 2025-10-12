@@ -5,6 +5,9 @@ PROJECT_NAME           = "NEMUS Harpsichord Interface Firmware"
 OUTPUT_DIRECTORY       = docs
 RECURSIVE              = YES
 CREATE_SUBDIRS         = YES
+ALLOW_UNICODE_NAMES    = YES
+PROJECT_LOGO           = img/nemu_icon.jpg
+PROJECT_ICON           = img/favicon.ico
 
 # ----------------------------------------------------------------------
 # FILE RECOGNITION
@@ -27,3 +30,4 @@ USE_MDFILE_AS_MAINPAGE = README.md
 GENERATE_HTML          = YES
 GENERATE_LATEX         = NO
 GENERATE_TREEVIEW      = YES
+SHORT_NAMES            = NO
