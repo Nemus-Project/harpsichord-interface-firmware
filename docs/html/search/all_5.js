@@ -1,5 +1,6 @@
 var searchData=
 [
-  ['getoffvelocity_0',['getOffVelocity',['../haptic__harpsichord_2sensor__functions_8ino.html#abccae892c559553d7d402a45f1c82741',1,'sensor_functions.ino']]],
-  ['getonvelocity_1',['getOnVelocity',['../haptic__harpsichord_2sensor__functions_8ino.html#a50967de88c81badfab8cb069362ed270',1,'sensor_functions.ino']]]
+  ['firmware_0',['Firmware',['../index.html#autotoc_md19',1,'Firmware'],['../index.html',1,'NEMUS Harpsichord Interface Firmware']]],
+  ['flash_1',['Build and Flash',['..//Users/admin/Documents/GitHub/harpsichord-interface-firmware/src/prototyping/esp-idf/bench-mark/README.md#autotoc_md11',1,'']]],
+  ['fram_5ftest_2eino_2',['fram_test.ino',['../de/d60/fram__test_8ino.html',1,'']]]
 ];

@@ -93,7 +93,7 @@ $(function(){initNavTree('index.html','',''); });
 <div class="contents">
 <div class="textblock"><p><a class="anchor" id="md__r_e_a_d_m_e"></a></p>
 <p><a href="https://doi.org/10.5281/zenodo.16848270"><img src="https://zenodo.org/badge/964505533.svg" alt="DOI" style="pointer-events: none;" class="inline"/></a></p>
-<h1 class="doxsection"><a class="anchor" id="autotoc_md3"></a>
+<h1 class="doxsection"><a class="anchor" id="autotoc_md19"></a>
 Firmware</h1>
 <p>All firmware in <span class="tt">src/</span> directory which consists of</p>
 <ul>
@@ -101,11 +101,12 @@ Firmware</h1>
 <li><span class="tt">src/prototyping/</span>: firmware used through the prototyping process</li>
 <li><span class="tt">src/tests/</span>: component functionaliy and diagnostics tests</li>
 </ul>
-<h2 class="doxsection"><a class="anchor" id="autotoc_md4"></a>
+<dl class="section note"><dt>Note</dt><dd>the <span class="tt">prototyping/</span> directory contains source created during the prototyping process and is still largely unorganised. All functionality and logic is largely the same as the main <span class="tt">haptic_harpischord/</span> code, though there may be the odd hard-coded variable or subtle change in behaviour. As such it is kept here for reference.</dd></dl>
+<h2 class="doxsection"><a class="anchor" id="autotoc_md20"></a>
 <span class="tt">haptic_harpsichord/</span></h2>
 <p>This is the full firmware for the haptic harpsochord using the Arduino IDE.</p>
 <p>Firmware was written around use of an Arduino Nano 33 BLE with some accomodation for an ESP32.</p>
-<h3 class="doxsection"><a class="anchor" id="autotoc_md5"></a>
+<h3 class="doxsection"><a class="anchor" id="autotoc_md21"></a>
 Components</h3>
 <ul>
 <li>QRE1113</li>
@@ -115,71 +116,43 @@ Components</h3>
 <li>CD4051BE multiplexer</li>
 <li>WS2812B RGB LEDs</li>
 </ul>
-<h3 class="doxsection"><a class="anchor" id="autotoc_md6"></a>
+<h3 class="doxsection"><a class="anchor" id="autotoc_md22"></a>
 Wiring Table</h3>
 <table class="markdownTable">
 <tr class="markdownTableHead">
-<th class="markdownTableHeadNone">Connection  </th><th class="markdownTableHeadNone">Pin  </th></tr>
+<th class="markdownTableHeadRight">Connection  </th><th class="markdownTableHeadRight">Pin Left  </th><th class="markdownTableHeadLeft">Pin Right  </th><th class="markdownTableHeadLeft">Connection  </th></tr>
 <tr class="markdownTableRowOdd">
-<td class="markdownTableBodyNone">NC  </td><td class="markdownTableBodyNone">D13  </td></tr>
+<td class="markdownTableBodyRight">EEPROM SPI CLK  </td><td class="markdownTableBodyRight">D13  </td><td class="markdownTableBodyLeft">D12  </td><td class="markdownTableBodyLeft">Rotary CLK  </td></tr>
 <tr class="markdownTableRowEven">
-<td class="markdownTableBodyNone">EEPROM VCC  </td><td class="markdownTableBodyNone">3.3v  </td></tr>
+<td class="markdownTableBodyRight">EEPROM VCC  </td><td class="markdownTableBodyRight">3.3v  </td><td class="markdownTableBodyLeft">D11  </td><td class="markdownTableBodyLeft">Rotary DATA  </td></tr>
 <tr class="markdownTableRowOdd">
-<td class="markdownTableBodyNone">AREF POT Switch  </td><td class="markdownTableBodyNone">AREF  </td></tr>
+<td class="markdownTableBodyRight">NC  </td><td class="markdownTableBodyRight">AREF  </td><td class="markdownTableBodyLeft">D10  </td><td class="markdownTableBodyLeft">Rotary Switch  </td></tr>
 <tr class="markdownTableRowEven">
-<td class="markdownTableBodyNone">PCB 0 QRE1113  </td><td class="markdownTableBodyNone">A0  </td></tr>
+<td class="markdownTableBodyRight">PCB 0  </td><td class="markdownTableBodyRight">A0  </td><td class="markdownTableBodyLeft">D9  </td><td class="markdownTableBodyLeft">LED Data  </td></tr>
 <tr class="markdownTableRowOdd">
-<td class="markdownTableBodyNone">PCB 1 QRE1113  </td><td class="markdownTableBodyNone">A1  </td></tr>
+<td class="markdownTableBodyRight">PCB 1  </td><td class="markdownTableBodyRight">A1  </td><td class="markdownTableBodyLeft">D8  </td><td class="markdownTableBodyLeft">Mux C  </td></tr>
 <tr class="markdownTableRowEven">
-<td class="markdownTableBodyNone">PCB 2 QRE1113  </td><td class="markdownTableBodyNone">A2  </td></tr>
+<td class="markdownTableBodyRight">PCB 2  </td><td class="markdownTableBodyRight">A2  </td><td class="markdownTableBodyLeft">D7  </td><td class="markdownTableBodyLeft">Mux B  </td></tr>
 <tr class="markdownTableRowOdd">
-<td class="markdownTableBodyNone">PCB 3 QRE1113  </td><td class="markdownTableBodyNone">A3  </td></tr>
+<td class="markdownTableBodyRight">PCB 3  </td><td class="markdownTableBodyRight">A3  </td><td class="markdownTableBodyLeft">D6  </td><td class="markdownTableBodyLeft">Mux A  </td></tr>
 <tr class="markdownTableRowEven">
-<td class="markdownTableBodyNone">PCB 4 QRE1113  </td><td class="markdownTableBodyNone">A4  </td></tr>
+<td class="markdownTableBodyRight">PCB 4  </td><td class="markdownTableBodyRight">A4  </td><td class="markdownTableBodyLeft">D5  </td><td class="markdownTableBodyLeft">Mux Interrupt  </td></tr>
 <tr class="markdownTableRowOdd">
-<td class="markdownTableBodyNone">PCB 5 QRE1113  </td><td class="markdownTableBodyNone">A6  </td></tr>
+<td class="markdownTableBodyRight">PCB 5  </td><td class="markdownTableBodyRight">A5  </td><td class="markdownTableBodyLeft">D4  </td><td class="markdownTableBodyLeft">EEPROM SPI MISO  </td></tr>
 <tr class="markdownTableRowEven">
-<td class="markdownTableBodyNone">PCB 6 QRE1113  </td><td class="markdownTableBodyNone">A7  </td></tr>
+<td class="markdownTableBodyRight">PCB 6  </td><td class="markdownTableBodyRight">A6  </td><td class="markdownTableBodyLeft">D3  </td><td class="markdownTableBodyLeft">EEPROM SPI MOSI  </td></tr>
 <tr class="markdownTableRowOdd">
-<td class="markdownTableBodyNone">NC  </td><td class="markdownTableBodyNone">5v  </td></tr>
+<td class="markdownTableBodyRight">NC  </td><td class="markdownTableBodyRight">A7  </td><td class="markdownTableBodyLeft">D2  </td><td class="markdownTableBodyLeft">EEPROM SPI CS  </td></tr>
 <tr class="markdownTableRowEven">
-<td class="markdownTableBodyNone">NC  </td><td class="markdownTableBodyNone">RESET  </td></tr>
+<td class="markdownTableBodyRight">NC  </td><td class="markdownTableBodyRight">5v  </td><td class="markdownTableBodyLeft">GND  </td><td class="markdownTableBodyLeft">GND  </td></tr>
 <tr class="markdownTableRowOdd">
-<td class="markdownTableBodyNone">GND  </td><td class="markdownTableBodyNone">GND  </td></tr>
+<td class="markdownTableBodyRight">NC  </td><td class="markdownTableBodyRight">RESET  </td><td class="markdownTableBodyLeft">RST  </td><td class="markdownTableBodyLeft">Reset Switch  </td></tr>
 <tr class="markdownTableRowEven">
-<td class="markdownTableBodyNone">PSU <span class="tt">+</span>  </td><td class="markdownTableBodyNone">VIN  </td></tr>
+<td class="markdownTableBodyRight">GND  </td><td class="markdownTableBodyRight">GND  </td><td class="markdownTableBodyLeft">RX / D1  </td><td class="markdownTableBodyLeft">NC  </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyRight">PSU <span class="tt">+</span>  </td><td class="markdownTableBodyRight">VIN  </td><td class="markdownTableBodyLeft">TX / D0  </td><td class="markdownTableBodyLeft">NC  </td></tr>
 </table>
-<table class="markdownTable">
-<tr class="markdownTableHead">
-<th class="markdownTableHeadNone">Connection  </th><th class="markdownTableHeadNone">Pin  </th></tr>
-<tr class="markdownTableRowOdd">
-<td class="markdownTableBodyNone">Rotary CLK  </td><td class="markdownTableBodyNone">D12  </td></tr>
-<tr class="markdownTableRowEven">
-<td class="markdownTableBodyNone">Rotary DATA  </td><td class="markdownTableBodyNone">D11  </td></tr>
-<tr class="markdownTableRowOdd">
-<td class="markdownTableBodyNone">Rotary Switch  </td><td class="markdownTableBodyNone">D10  </td></tr>
-<tr class="markdownTableRowEven">
-<td class="markdownTableBodyNone">LED Data  </td><td class="markdownTableBodyNone">D9  </td></tr>
-<tr class="markdownTableRowOdd">
-<td class="markdownTableBodyNone">Mux C  </td><td class="markdownTableBodyNone">D8  </td></tr>
-<tr class="markdownTableRowEven">
-<td class="markdownTableBodyNone">Mux B  </td><td class="markdownTableBodyNone">D7  </td></tr>
-<tr class="markdownTableRowOdd">
-<td class="markdownTableBodyNone">Mux A  </td><td class="markdownTableBodyNone">D6  </td></tr>
-<tr class="markdownTableRowEven">
-<td class="markdownTableBodyNone">EEPROM SPI CLK  </td><td class="markdownTableBodyNone">D5  </td></tr>
-<tr class="markdownTableRowOdd">
-<td class="markdownTableBodyNone">EEPROM SPI MISO  </td><td class="markdownTableBodyNone">D4  </td></tr>
-<tr class="markdownTableRowEven">
-<td class="markdownTableBodyNone">EEPROM SPI MOSI  </td><td class="markdownTableBodyNone">D3  </td></tr>
-<tr class="markdownTableRowOdd">
-<td class="markdownTableBodyNone">EEPROM SPI CS  </td><td class="markdownTableBodyNone">D2  </td></tr>
-<tr class="markdownTableRowEven">
-<td class="markdownTableBodyNone">NC  </td><td class="markdownTableBodyNone">RX / D1  </td></tr>
-<tr class="markdownTableRowOdd">
-<td class="markdownTableBodyNone">NC  </td><td class="markdownTableBodyNone">TX / D0  </td></tr>
-</table>
-<p>†_NC_: Not Connected </p>
+<p><em>NC</em>: Not Connected </p>
 </div></div><!-- PageDoc -->
 <a href="doxygen_crawl.html"></a>
 </div><!-- contents -->
