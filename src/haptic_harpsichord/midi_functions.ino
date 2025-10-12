@@ -60,10 +60,10 @@ void aftertouch(byte channel, byte key, byte pressure) {
  * Currently hard cded to start from C3
  *
  * @param index key index
- * @param transpose 
- * @return byte 
+ * @param transpose transposes the entire keyboard up or down
+ * @return byte MIDI note value
  */
-byte index2note(byte index, byte transpose)
+byte index2note(byte index, int8_t transpose)
 {
   return numSensors - 1 - index + 48 + transpose;
 }

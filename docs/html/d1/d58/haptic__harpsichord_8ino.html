@@ -131,8 +131,8 @@ Enumerations</h2></td></tr>
 Functions</h2></td></tr>
 <tr class="memitem:a9d70beff701e3b597b75e1e814f88f17" id="r_a9d70beff701e3b597b75e1e814f88f17"><td class="memItemLeft" align="right" valign="top">constexpr byte&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a9d70beff701e3b597b75e1e814f88f17">key2index</a> (byte k)</td></tr>
 <tr class="memdesc:a9d70beff701e3b597b75e1e814f88f17"><td class="mdescLeft">&#160;</td><td class="mdescRight">Key number to keyindex.  <br /></td></tr>
-<tr class="memitem:a60ca3459b8849ad227d7927987577bfe" id="r_a60ca3459b8849ad227d7927987577bfe"><td class="memItemLeft" align="right" valign="top">byte&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a60ca3459b8849ad227d7927987577bfe">index2note</a> (byte index, byte transpose=0)</td></tr>
-<tr class="memdesc:a60ca3459b8849ad227d7927987577bfe"><td class="mdescLeft">&#160;</td><td class="mdescRight">Translate between key index and note.  <br /></td></tr>
+<tr class="memitem:a60ca3459b8849ad227d7927987577bfe" id="r_a60ca3459b8849ad227d7927987577bfe"><td class="memItemLeft" align="right" valign="top"><a id="a60ca3459b8849ad227d7927987577bfe" name="a60ca3459b8849ad227d7927987577bfe"></a>
+byte&#160;</td><td class="memItemRight" valign="bottom"><b>index2note</b> (byte index, byte transpose=0)</td></tr>
 <tr class="memitem:ab87f324bc11121b845d0d6bd14708954" id="r_ab87f324bc11121b845d0d6bd14708954"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ab87f324bc11121b845d0d6bd14708954">rotate</a> (Rotary &amp;r)</td></tr>
 <tr class="memdesc:ab87f324bc11121b845d0d6bd14708954"><td class="mdescLeft">&#160;</td><td class="mdescRight">Rotate callback.  <br /></td></tr>
 <tr class="memitem:a32b5bd9df240aa826a6e9d9745844851" id="r_a32b5bd9df240aa826a6e9d9745844851"><td class="memItemLeft" align="right" valign="top"><a id="a32b5bd9df240aa826a6e9d9745844851" name="a32b5bd9df240aa826a6e9d9745844851"></a>
@@ -328,38 +328,6 @@ Pinout</h2>
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>key number as it appears on the interface </dd></dl>
-
-</div>
-</div>
-<a id="a60ca3459b8849ad227d7927987577bfe" name="a60ca3459b8849ad227d7927987577bfe"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a60ca3459b8849ad227d7927987577bfe">&#9670;&#160;</a></span>index2note()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">byte index2note </td>
-          <td>(</td>
-          <td class="paramtype">byte</td>          <td class="paramname"><span class="paramname"><em>index</em></span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">byte</td>          <td class="paramname"><span class="paramname"><em>transpose</em></span>&#160;)</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Translate between key index and note. </p>
-<p>Overrides for short octave or transposition should happen here Currently hard cded to start from C3</p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">index</td><td>key index </td></tr>
-    <tr><td class="paramname">transpose</td><td></td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="section return"><dt>Returns</dt><dd>byte </dd></dl>
 
 </div>
 </div>

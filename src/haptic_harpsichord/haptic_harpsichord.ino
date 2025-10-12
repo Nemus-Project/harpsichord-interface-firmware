@@ -78,7 +78,7 @@ enum JackState {
 #endif
 //-----------------------------------------------------------------------------
 constexpr byte key2index(byte k);
-byte index2note(byte index, byte transpose = 0);
+byte index2note(byte index, int8_t transpose = 0);
 void rotate(Rotary& r);
 //-----------------------------------------------------------------------------
 // Config Variables
