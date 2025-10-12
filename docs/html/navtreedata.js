@@ -25,10 +25,10 @@
 var NAVTREE =
 [
   [ "NEMUS Harpsichord Interface Firmware", "index.html", [
-    [ "Firmware", "index.html#autotoc_md19", [
-      [ "<span class=\"tt\">haptic_harpsichord/</span>", "index.html#autotoc_md20", [
-        [ "Components", "index.html#autotoc_md21", null ],
-        [ "Wiring Table", "index.html#autotoc_md22", null ]
+    [ "Firmware", "index.html#autotoc_md18", [
+      [ "<span class=\"tt\">haptic_harpsichord/</span>", "index.html#autotoc_md19", [
+        [ "Components", "index.html#autotoc_md20", null ],
+        [ "Wiring Table", "index.html#autotoc_md21", null ]
       ] ]
     ] ],
     [ "Files", "files.html", [

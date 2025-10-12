@@ -1,11 +1,10 @@
 /**
- * @dir ./src/haptic_harpsichord/
+ * @dir ./src/haptic_harpsichord
  * @brief Final Firmware for NEMUS harpsichord interface
  *
  * @file haptic_harpsichord.ino
- * @brief Firmware for the NEMUS haptic harpsochord
+ * @brief Main firmware file for Arduino IDE
  *
- * # Haptic Harpsichord
  * 
  * This is the full firmware for the haptic harpsochord using the arduino IDE development platform
  *

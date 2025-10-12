@@ -6,6 +6,7 @@
 <meta name="generator" content="Doxygen 1.14.0"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
 <title>NEMUS Harpsichord Interface Firmware: src/haptic_harpsichord Directory Reference</title>
+<link rel="icon" href="favicon.ico" type="image/x-icon" />
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -25,6 +26,7 @@
 <table cellspacing="0" cellpadding="0">
  <tbody>
  <tr id="projectrow">
+  <td id="projectlogo"><img alt="Logo" src="logo.png"/></td>
   <td id="projectalign">
    <div id="projectname">NEMUS Harpsichord Interface Firmware
    </div>
@@ -107,7 +109,7 @@ Files</h2></td></tr>
 <tr class="memitem:error_5Ffunctions_2Eino" id="r_error_5Ffunctions_2Eino"><td class="memItemLeft" align="right" valign="top"><span class="icondoc"><div class="doc-icon"></div></span>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="da/dc6/error__functions_8ino.html">error_functions.ino</a></td></tr>
 <tr class="memdesc:da/dc6/error__functions_8ino"><td class="mdescLeft">&#160;</td><td class="mdescRight">Utility functions in case of error. <br /></td></tr>
 <tr class="memitem:haptic_5Fharpsichord_2Eino" id="r_haptic_5Fharpsichord_2Eino"><td class="memItemLeft" align="right" valign="top"><span class="icondoc"><div class="doc-icon"></div></span>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="d1/d58/haptic__harpsichord_8ino.html">haptic_harpsichord.ino</a></td></tr>
-<tr class="memdesc:d1/d58/haptic__harpsichord_8ino"><td class="mdescLeft">&#160;</td><td class="mdescRight">Firmware for the NEMUS haptic harpsochord. <br /></td></tr>
+<tr class="memdesc:d1/d58/haptic__harpsichord_8ino"><td class="mdescLeft">&#160;</td><td class="mdescRight">Main firmware file for Arduino IDE. <br /></td></tr>
 <tr class="memitem:jack_5Fstate_5Ffunctions_2Eino" id="r_jack_5Fstate_5Ffunctions_2Eino"><td class="memItemLeft" align="right" valign="top"><span class="icondoc"><div class="doc-icon"></div></span>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="d6/d2f/jack__state__functions_8ino.html">jack_state_functions.ino</a></td></tr>
 <tr class="memdesc:d6/d2f/jack__state__functions_8ino"><td class="mdescLeft">&#160;</td><td class="mdescRight">Utilities for updating jack states and generating MIDI based on the change in state. <br /></td></tr>
 <tr class="memitem:led_5Ffunctions_2Eino" id="r_led_5Ffunctions_2Eino"><td class="memItemLeft" align="right" valign="top"><span class="icondoc"><div class="doc-icon"></div></span>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="db/de3/led__functions_8ino.html">led_functions.ino</a></td></tr>
@@ -119,9 +121,8 @@ Files</h2></td></tr>
 </table>
 <a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
 <p>Final Firmware for NEMUS harpsichord interface. </p>
-<p>/ </p>
 <p>This documentation contain information for developing and deploying the firmware for the Haptic Harpsichord MIDI Controller</p>
-<h2 class="doxsection"><a class="anchor" id="autotoc_md2"></a>
+<h2 class="doxsection"><a class="anchor" id="autotoc_md1"></a>
 Wiring</h2>
 <p>Pin layout adheres to the Arduino nano form factor</p>
 <table class="markdownTable">
@@ -158,16 +159,16 @@ Wiring</h2>
 <tr class="markdownTableRowOdd">
 <td class="markdownTableBodyRight">PSU <span class="tt">+</span>  </td><td class="markdownTableBodyRight">VIN  </td><td class="markdownTableBodyLeft">TX / D0  </td><td class="markdownTableBodyLeft">NC  </td></tr>
 </table>
-<h2 class="doxsection"><a class="anchor" id="autotoc_md3"></a>
+<h2 class="doxsection"><a class="anchor" id="autotoc_md2"></a>
 MIDI</h2>
 <p>Standard MIDI protocol is used. Changes in behaviour should be directed at the <span class="tt">midi_functions.h</span></p>
-<h2 class="doxsection"><a class="anchor" id="autotoc_md4"></a>
+<h2 class="doxsection"><a class="anchor" id="autotoc_md3"></a>
 Power</h2>
 <p>The system currently uses a 5V 1A power supply.</p>
-<h2 class="doxsection"><a class="anchor" id="autotoc_md5"></a>
+<h2 class="doxsection"><a class="anchor" id="autotoc_md4"></a>
 Troubleshoooting</h2>
 <p>If there are any problems with individual components, check the <span class="tt">tests/</span> directory for a set siagnostic tests.</p>
-<h3 class="doxsection"><a class="anchor" id="autotoc_md6"></a>
+<h3 class="doxsection"><a class="anchor" id="autotoc_md5"></a>
 Sensor Data Noise</h3>
 <p>If the sensors seem to return random noise and do not respond to an IR LED it is possible the interrupt for the multiplexers is not connected or is at a positive voltage. Ground the INT pin of the multiplexer. </p>
 </div><!-- contents -->
