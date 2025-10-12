@@ -1,5 +1,5 @@
 /** 
- * @file 
+ * @file  QRE1113_Keyboard_6_note.ino
  * @brief QRE1113  6-Note Keyboard
  *  
  *  Firmware for 3-key, 6-jack Harpsochord model
