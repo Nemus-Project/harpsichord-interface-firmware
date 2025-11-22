@@ -219,8 +219,6 @@ void loop() {
 
 void keyboardLoop() {
   readAllSensors();
-  rotary.loop();
-  button.loop();
 
   for (int i = 0; i < numSensors; i++) {
     if (currSensorReadings[i] < releaseThresholds[i] and prevSensorReadings[i] > releaseThresholds[i] and jackStates[i] != RELEASED) {

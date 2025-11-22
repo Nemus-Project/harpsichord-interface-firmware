@@ -16,7 +16,8 @@ void debugLoop() {
   setupDebugMode();
 
   while (executeDebugMode) {
-
+    rotary.loop();
+    button.loop();
     keyboardLoop();
     plotKeyData(curKeyIndex);
   }
