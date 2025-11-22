@@ -10,10 +10,13 @@ void readSensors() {
     // digitalWrite(muxPinD, (mux >> 3) & 0x1);
     delayMicroseconds(500);
 
-    for (int adc = 0; adc < numPcbs; adc++) {
-      int i = mux + (adc * numPcbs);
-      currSensorReadings[i] = analogRead(A0 + adc);
-    }
+    currSensorReadings[i + (0 * 7)] = analogRead(A0 + 0);
+    currSensorReadings[i + (1 * 7)] = analogRead(A0 + 1);
+    currSensorReadings[i + (2 * 7)] = analogRead(A0 + 2);
+    currSensorReadings[i + (3 * 7)] = analogRead(A0 + 3);
+    currSensorReadings[i + (4 * 7)] = analogRead(A0 + 4);
+    currSensorReadings[i + (5 * 7)] = analogRead(A0 + 5);
+    currSensorReadings[i + (6 * 7)] = analogRead(A0 + 6);
   }
 
   // pointer swap
