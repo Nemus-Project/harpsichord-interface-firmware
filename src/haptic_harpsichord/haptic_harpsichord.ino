@@ -155,7 +155,7 @@ const uint8_t thresholdTag[4] = { 'D', 'A', 'T', 'A' };
 // const uint8_t minTag[4] = { 'M', 'I', 'N', 'I' };
 const uint16_t pluckValAddress = tagAddress + 4;
 
-unsigned long times[1024] = {0};
+unsigned long times[1024] = { 0 };
 //-----------------------------------------------------------------------------
 // MIDI Variables
 USBMIDI MidiUSB;
@@ -187,7 +187,7 @@ void setup() {
 
   leds.begin();
   leds.clear();
-  
+
   // /// setup EEPROM
   // if (!fram.begin())
   //   halt(FRAM_NOT_FOUND);
@@ -203,34 +203,15 @@ void setup() {
 }
 
 void loop() {
+  readSensors();
 
-  // readSensors();
-  // rotary.loop();
-  // button.loop();
-
-  // for (int i = 0; i < numSensors; i++) {
-  //   if (currSensorReadings[i] < pluckThresholds[i] and prevSensorReadings[i] > pluckThresholds[i]) {
-  //     noteOff(0, index2note(i), 100);
-  //   } else if (currSensorReadings[i] > pluckThresholds[i] and prevSensorReadings[i] < pluckThresholds[i]) {
-  //     noteOn(0, index2note(i), 100);
-  //   }
-  // }
-
-  // readCount++;
-
-  // if (readCount > 2048) {
-  //   readCount = 0;
-  //   Serial.println(millis() - lastRead);
-  //   lastRead = millis();
-  // }
-
-    if (millis() - now > 16) {
-      // rainbow(step++);
-      breath(step++);
-      now = millis();
+  for (int i = 0; i < numSensors; i++) {
+    if (currSensorReadings[i] < pluckThresholds[i] and prevSensorReadings[i] > pluckThresholds[i]) {
+      noteOff(0, index2note(i), 100);
+    } else if (currSensorReadings[i] > pluckThresholds[i] and prevSensorReadings[i] < pluckThresholds[i]) {
+      noteOn(0, index2note(i), 100);
     }
-    // rotary.loop();
-  
+  }
 }
 
 void calibrate() {

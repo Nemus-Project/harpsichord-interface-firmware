@@ -8,27 +8,12 @@ void readSensors() {
     digitalWrite(muxPinB, (mux >> 1) & 0x1);
     digitalWrite(muxPinC, (mux >> 2) & 0x1);
     // digitalWrite(muxPinD, (mux >> 3) & 0x1);
+    delayMicroseconds(500);
 
     for (int adc = 0; adc < numPcbs; adc++) {
-
       int i = mux + (adc * numPcbs);
-
-      sensorWindowReadings[i][windex] = analogRead(A0 + adc);
-
-      uint16_t total = 0;
-
-      for (int avg = 0; avg < avgSize; avg++) {
-        total += sensorWindowReadings[i][avg];
-      }
-
-      currSensorReadings[i] = total / avgSize;
-      // currSensorReadings[i] = analogRead(A0 + adc);
+      currSensorReadings[i] = analogRead(A0 + adc);
     }
-  }
-  
-  windex++;
-  if (windex >= avgSize) {
-    windex = 0;
   }
 
   // pointer swap

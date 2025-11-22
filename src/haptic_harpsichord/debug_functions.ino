@@ -41,28 +41,12 @@ void debugLoop() {
       }
     }
 
-    // printJackReading(curKeyIndex);
-    // printJackThreshold(curKeyIndex);
-    // Serial.println();
+    printJackReading(curKeyIndex);
+    printJackThreshold(curKeyIndex);
+    Serial.println();
 
     times[readCount] = micros() - start;
     readCount++;
-
-    if (currSensorReadings[curKeyIndex] < sensorAvgMinima[curKeyIndex]) {
-      sensorAvgMinima[curKeyIndex] = currSensorReadings[curKeyIndex];
-    }
-
-    if (readCount > 1024) {
-      readCount = 0;
-
-      // for (auto&& time : times) 
-      for (int i = 0; i < 1024; i++)       
-      {
-        Serial.write((byte*)(times+i), 4);
-        delay(1);
-        // Serial.write((times+i), 4);
-      }    
-    }
   }
 
   exitDebug();
