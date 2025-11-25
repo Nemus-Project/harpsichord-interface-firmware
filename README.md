@@ -1,6 +1,43 @@
 # NEMUS Harpsichord Interface Firmware
 [![DOI](https://zenodo.org/badge/964505533.svg)](https://doi.org/10.5281/zenodo.16848270)
 
+## Setup
+
+First you will need the Arduino IDE. This project was compiled using [version 2.3.3](https://github.com/arduino/arduino-ide/releases/tag/2.3.3). Future revisions (`2.x.x`) should be fine, but behaviour may change for major revisions.
+
+### Dependecies
+
+The firware has the following library dependecies. 
+
+- [Rotary](https://github.com/skathir38/Rotary)
+- [Button2](https://github.com/LennartHennigs/Button2)
+- [Adafruit NeoPixelRotary](https://github.com/adafruit/Adafruit_NeoPixel)
+- [Adafruit FRAM SPI](https://github.com/adafruit/Adafruit_FRAM_SPI)
+
+The MIDI functionality is currently provided through Arduino Nano 33 BLE mbed [`PluggableUSBMIDI.h`](https://github.com/arduino/ArduinoCore-mbed/blob/53bbb4b26e85fd165fe861ff3878a8d64029ca44/libraries/USBMIDI/PluggableUSBMIDI.h) header.
+
+These dependencies can be installed manually or through the [`arduino-cli`](https://arduino.github.io/arduino-cli/).
+
+If you are using [homebrew on macOS](https://brew.sh), in your Terminal type:
+
+```sh
+brew install arduino-cli
+```
+
+Otherwise, follow the [alternative install instructions](https://arduino.github.io/arduino-cli/1.3/installation/#use-the-install-script).
+
+After installation, you can copy and paste the following into your terminal:
+
+```sh
+arduino-cli lib install "Rotary"
+arduino-cli lib install "Button2"
+arduino-cli lib install "Adafruit FRAM SPI"
+arduino-cli lib install "Adafruit NeoPixel"
+arduino-cli core install arduino:mbed_nano
+```
+
+
+
 ## Firmware
 
 All firmware in `src/` directory which consists of
