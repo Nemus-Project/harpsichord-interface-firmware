@@ -13,22 +13,22 @@
  * ## Pinout
  *
  * |     Connection | Pin Left | Pin Right | Connection      |
- * | -------------: | -------: | :-------- | :-------------- |
- * | EEPROM SPI CLK |      D13 | D12       | Rotary CLK      |
- * |     EEPROM VCC |     3.3v | D11       | Rotary DATA     |
- * |             NC |     AREF | D10       | Rotary Switch   |
- * |          PCB 0 |       A0 | D9        | LED Data        |
- * |          PCB 1 |       A1 | D8        | Mux C           |
- * |          PCB 2 |       A2 | D7        | Mux B           |
- * |          PCB 3 |       A3 | D6        | Mux A           |
- * |          PCB 4 |       A4 | D5        | Mux Interrupt   |
- * |          PCB 5 |       A5 | D4        | EEPROM SPI MISO |
- * |          PCB 6 |       A6 | D3        | EEPROM SPI MOSI |
- * |             NC |       A7 | D2        | EEPROM SPI CS   |
- * |             NC |       5v | GND       | GND             |
- * |             NC |    RESET | RST       | Reset Switch    |
- * |            GND |      GND | RX / D1   | NC              |
- * |        PSU `+` |      VIN | TX / D0   | NC              |
+ * | -------------: | :------- | --------: | :-------------- |
+ * | EEPROM SPI CLK | D13      |       D12 | Rotary CLK      |
+ * |     EEPROM VCC | 3.3v     |       D11 | Rotary DATA     |
+ * |             NC | AREF     |       D10 | Rotary Switch   |
+ * |          PCB 0 | A0       |        D9 | LED Data        |
+ * |          PCB 1 | A1       |        D8 | Mux C           |
+ * |          PCB 2 | A2       |        D7 | Mux B           |
+ * |          PCB 3 | A3       |        D6 | Mux A           |
+ * |          PCB 4 | A4       |        D5 | Mux Interrupt   |
+ * |          PCB 5 | A5       |        D4 | EEPROM SPI MISO |
+ * |          PCB 6 | A6       |        D3 | EEPROM SPI MOSI |
+ * |             NC | A7       |        D2 | EEPROM SPI CS   |
+ * |             NC | 5v       |       GND | GND             |
+ * |             NC | RESET    |       RST | Reset Switch    |
+ * |            GND | GND      |   RX / D1 | NC              |
+ * |        PSU `+` | VIN      |   TX / D0 | NC              |
  *
  *
  * @date 2025-10-11
@@ -37,14 +37,14 @@
  */
 //-----------------------------------------------------------------------------
 // Board specific libraries
-#ifdef ARDUINO_ARDUINO_NANO33BLE
+// #ifdef ARDUINO_ARDUINO_NANO33BLE
 #include <PluggableUSBMIDI.h>
-#elif ESP32
-#include <Arduino.h>
-#include <Adafruit_TinyUSB.h>  // verision 3.1.3
-#include <MIDI.h>
-#elif ARDUINO_ARCH_STM32
-#endif
+// #elif ESP32
+// #include <Arduino.h>
+// #include <Adafruit_TinyUSB.h>  // verision 3.1.3
+// #include <MIDI.h>
+// #elif ARDUINO_ARCH_STM32
+// #endif
 //-----------------------------------------------------------------------------
 // Board Agnostics Libraries
 #include <Rotary.h>
@@ -239,14 +239,14 @@ void setup() {
   leds.begin();
   leds.clear();
   
-  // /// setup EEPROM
-  // if (!fram.begin())
-  //   halt(FRAM_NOT_FOUND);
+  /// setup EEPROM
+  if (!fram.begin())
+    halt(FRAM_NOT_FOUND);
 
-  // readPluckFromEEPROM();
+  readPluckFromEEPROM();
 
   // calibrarte sensors
-  // calibrate();
+  calibrate();
 
   if (button.isPressed() or ALWAYS_DEBUG) {
     debugLoop();
