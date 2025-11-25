@@ -16,7 +16,7 @@ The firware has the following library dependecies.
 
 The MIDI functionality is currently provided through Arduino Nano 33 BLE mbed [`PluggableUSBMIDI.h`](https://github.com/arduino/ArduinoCore-mbed/blob/53bbb4b26e85fd165fe861ff3878a8d64029ca44/libraries/USBMIDI/PluggableUSBMIDI.h) header.
 
-These dependencies can be installed manually or through the [`arduino-cli`](https://arduino.github.io/arduino-cli/).
+These dependencies can be installed [manually](https://docs.arduino.cc/software/ide-v1/tutorials/installing-libraries/) or through the [`arduino-cli`](https://arduino.github.io/arduino-cli/).
 
 If you are using [homebrew on macOS](https://brew.sh), in your Terminal type:
 
