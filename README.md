@@ -36,7 +36,7 @@ arduino-cli lib install "Adafruit NeoPixel"
 arduino-cli core install arduino:mbed_nano
 ```
 
-
+Open the firmware and verify it works. Please [flag an issue](https://github.com/Nemus-Project/harpsichord-interface-firmware/issues/new/choose) if you come across any errors.
 
 ## Firmware
 
