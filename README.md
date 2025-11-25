@@ -46,7 +46,8 @@ All firmware in `src/` directory which consists of
 - `src/prototyping/`: firmware used through the prototyping process
 - `src/tests/`: component functionaliy and diagnostics tests
 
-@note the `prototyping/` directory contains source created during the prototyping process and is still largely unorganised. All functionality and logic is largely the same as the main `haptic_harpischord/` code, though there may be the odd hard-coded variable or subtle change in behaviour. As such it is kept here for reference.
+> [!NOTE]
+> The `prototyping/` directory contains source created during the prototyping process and is still largely unorganised. All functionality and logic is largely the same as the main `haptic_harpischord/` code, though there may be the odd hard-coded variable or subtle change in behaviour. As such it is kept here for reference.
 
 ### `haptic_harpsichord/`
 
