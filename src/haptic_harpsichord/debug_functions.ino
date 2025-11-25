@@ -62,9 +62,9 @@ void debugLoop() {
       }
     }
 
-    // printJackReading(curKeyIndex);
-    // printJackThreshold(curKeyIndex);
-    // Serial.println();
+    printJackReading(curKeyIndex);
+    printJackThreshold(curKeyIndex);
+    Serial.println();
 
     times[readCount] = micros() - start;
     readCount++;
