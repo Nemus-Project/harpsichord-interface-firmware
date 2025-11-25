@@ -246,7 +246,7 @@ void setup() {
   readPluckFromEEPROM();
 
   // calibrarte sensors
-  calibrate();
+  // calibrate();
 
   if (button.isPressed() or ALWAYS_DEBUG) {
     debugLoop();
