@@ -37,14 +37,14 @@
  */
 //-----------------------------------------------------------------------------
 // Board specific libraries
-// #ifdef ARDUINO_ARDUINO_NANO33BLE
+#ifdef ARDUINO_ARDUINO_NANO33BLE
 #include <PluggableUSBMIDI.h>
-// #elif ESP32
-// #include <Arduino.h>
-// #include <Adafruit_TinyUSB.h>  // verision 3.1.3
-// #include <MIDI.h>
-// #elif ARDUINO_ARCH_STM32
-// #endif
+#elif ESP32
+#include <Arduino.h>
+#include <Adafruit_TinyUSB.h>  // verision 3.1.3
+#include <MIDI.h>
+#elif ARDUINO_ARCH_STM32
+#endif
 //-----------------------------------------------------------------------------
 // Board Agnostics Libraries
 #include <Rotary.h>
