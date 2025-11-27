@@ -36,18 +36,12 @@ void setupDebugMode() {
 void debugLoop() {
   setupDebugMode();
 
-  // curKeyIndex = rotary.getPosition();
   leds.fill(leds.Color(0, 0, 0), 0, numSensors);
   leds.setPixelColor(curKeyIndex, 0, 0, 255);
   leds.show();
 
   while (executeDebugMode) {
 
-    // if (millis() - now > 16) {
-    //  rainbow(step++);
-    //   // breath(step++);
-    //   now = millis();
-    // }
     unsigned long start = micros();
 
     readSensors();
@@ -71,18 +65,6 @@ void debugLoop() {
 
     if (currSensorReadings[curKeyIndex] < sensorAvgMinima[curKeyIndex]) {
       sensorAvgMinima[curKeyIndex] = currSensorReadings[curKeyIndex];
-    }
-
-    if (readCount > 1024) {
-      readCount = 0;
-
-      // for (auto&& time : times) 
-      for (int i = 0; i < 1024; i++)       
-      {
-        Serial.write((byte*)(times+i), 4);
-        delay(1);
-        // Serial.write((times+i), 4);
-      }    
     }
   }
 
