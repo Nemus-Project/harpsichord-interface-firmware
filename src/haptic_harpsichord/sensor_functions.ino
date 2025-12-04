@@ -1,13 +1,12 @@
 /// Read all sensors and put results in currSensorReadings
 void readSensors() {
 
-  for (int mux = 0; mux < numMuxChannels; mux++) {
+  for (uint8_t i = 0; i < 7; i++) {
+    
+    digitalWrite(muxPinA, (i >> 0) & 0x1);
+    digitalWrite(muxPinB, (i >> 1) & 0x1);
+    digitalWrite(muxPinC, (i >> 2) & 0x1);
 
-    // switch mux channel
-    digitalWrite(muxPinA, (mux >> 0) & 0x1);
-    digitalWrite(muxPinB, (mux >> 1) & 0x1);
-    digitalWrite(muxPinC, (mux >> 2) & 0x1);
-    // digitalWrite(muxPinD, (mux >> 3) & 0x1);
     delayMicroseconds(500);
 
     currSensorReadings[i + (0 * 7)] = analogRead(A0 + 0);
