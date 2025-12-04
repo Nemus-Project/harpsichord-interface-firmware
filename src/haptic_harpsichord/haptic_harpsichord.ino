@@ -302,41 +302,47 @@ void setup() {
  * Listen to sensor values and generate MIDI one those thresholds have been crossed
  */
 void loop() {
-
-  readSensors();
-
-  for (int i = 0; i < numSensors; i++) {
-    if (currSensorReadings[i] < singlePluckThresholds[i] and prevSensorReadings[i] > singlePluckThresholds[i]) {
-      noteOff(0, index2note(i), 100);
-    } else if (currSensorReadings[i] > singlePluckThresholds[i] and prevSensorReadings[i] < singlePluckThresholds[i]) {
-      noteOn(0, index2note(i), 100);
-    }
+  switch (thresholdType) {
+    case SINGLE_THRESHOLD:
+      singleThresholdLoop();
+      break;
+    case HYSTERETIC:
+      hysteresisLoop();
+      break;
   }
 }
 
 void singleThresholdLoop() {
-  readSensors();
 
-  for (int i = 0; i < numSensors; i++) {
-    if (currSensorReadings[i] < singlePluckThresholds[i] and prevSensorReadings[i] > singlePluckThresholds[i]) {
-      noteOff(0, index2note(i), 100);
-    } else if (currSensorReadings[i] > singlePluckThresholds[i] and prevSensorReadings[i] < singlePluckThresholds[i]) {
-      noteOn(0, index2note(i), 100);
+  while (true) {
+
+    readSensors();
+
+    for (int i = 0; i < numSensors; i++) {
+      if (currSensorReadings[i] < singlePluckThresholds[i] and prevSensorReadings[i] > singlePluckThresholds[i]) {
+        noteOff(0, index2note(i), 100);
+      } else if (currSensorReadings[i] > singlePluckThresholds[i] and prevSensorReadings[i] < singlePluckThresholds[i]) {
+        noteOn(0, index2note(i), 100);
+      }
     }
   }
 }
 
 void hysteresisLoop() {
+  while (true) {
 
-  readSensors();
+    readSensors();
 
-  for (int i = 0; i < numSensors; i++) {
-    if (currSensorReadings[i] < pluckThresholds[i] and prevSensorReadings[i] > pluckThresholds[i]) {
-      noteOff(0, index2note(i), 100);
-    } else if (currSensorReadings[i] > releaseThresholds[i] and prevSensorReadings[i] < releaseThresholds[i]) {
-      noteOn(0, index2note(i), 100);
+    for (int i = 0; i < numSensors; i++) {
+      if (currSensorReadings[i] < pluckThresholds[i] and prevSensorReadings[i] > pluckThresholds[i]) {
+        noteOff(0, index2note(i), 100);
+      } else if (currSensorReadings[i] > releaseThresholds[i] and prevSensorReadings[i] < releaseThresholds[i]) {
+        noteOn(0, index2note(i), 100);
+      }
     }
+    
   }
+
 }
 
 
