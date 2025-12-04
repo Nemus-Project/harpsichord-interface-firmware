@@ -97,6 +97,10 @@ void setup() {
     editDataValues();
   }
 
+  
+}
+//-----------------------------------------------------------------------------
+void loop() {
   for (int i = 0; i < 7; i++) {
     Serial.print("------ Board ");
     Serial.print(i);
@@ -142,8 +146,6 @@ void setup() {
   Serial.println("Input an option or power off the Arduino\r\n");
   editDataValues();
 }
-//-----------------------------------------------------------------------------
-void loop() {}
 
 void halt() {
   while (true) {
