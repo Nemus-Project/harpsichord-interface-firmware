@@ -74,9 +74,9 @@ void readPluckFromEEPROM() {
     setRegister();
 
     fram.writeEnable(true);
-    fram.write(registerTypeAddress, (uint8_t*)jackRegister, sizeof(jackRegister));
+    fram.write(registerTypeAddress, (uint8_t*)(&jackRegister), sizeof(jackRegister));
   } else {
-    fram.read(registerTypeAddress, (uint8_t*)jackRegister, sizeof(jackRegister));
+    fram.read(registerTypeAddress,  (uint8_t*)(&jackRegister), sizeof(jackRegister));
   }
 }
 
