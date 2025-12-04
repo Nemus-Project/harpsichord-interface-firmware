@@ -1,5 +1,16 @@
+/**
+ * @file jack_state_functions.ino
+ * @brief Utilities for updating jack states and generating MIDI based on the change in state
+ *
+ * @date 2025-10-11
+ * @author Matthew Hamilton
+ */
 
 
+/**
+ * @brief Update th Jack state array given current sensor values
+ * 
+ */
 void updateJackStates() {
 
   tempStatePointer = prevStates;
@@ -23,6 +34,11 @@ void updateJackStates() {
   //   jackStates[2] = RELEASING;
 }
 
+
+/**
+ * @brief Generate MIDI messages base on jack state
+ * 
+ */
 void checkJackStates() {
 
   bool anyTrigger = false;

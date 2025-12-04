@@ -1,48 +1,52 @@
-/*
-  QRE1113  6-Note Keyboard
-  
-  Firmware for 3-key, 6-jack Harpsochord model
-
-
-  Wiring:
-  
-    |   Connection   | Pin |
-    | -------------- | --- |
-    | Jack 0 QRE1113 | A0  |
-    | Jack 1 QRE1113 | A1  |
-    | Jack 2 QRE1113 | A2  |
-    | Jack 3 QRE1113 | A3  |
-    | Jack 4 QRE1113 | A6  |
-    | Jack 5 QRE1113 | A7  |
-    | Jack 0 LED     | D2  |
-    | Jack 1 LED     | D3  |
-    | Jack 2 LED     | D4  |
-    | Jack 3 LED     | D5  |
-    | Jack 4 LED     | D6  |
-    | Jack 5 LED     | D7  |
-    | Rotary CLK     | D12 |
-    | Rotary DATA    | D11 |
-    | Rotary Switch  | D10 |
-
-
-  Jack Layout:
-
-    ┌─┐┌─┐┌─┐
-    ┤3│┤4│┤5│
-    └─┘└─┘└─┘
-    ┌─┐┌─┐┌─┐
-    │0├│1├│2├
-    └─┘└─┘└─┘
-
-    ┌──┬─┬──┐
-    │  │ │  │
-    │  │ │  │
-    │  │ │  │
-    │  └┬┘  │
-    │   │   │
-    │   │   │
-    └───┴───┘
-*/
+/** 
+ * @file  QRE1113_Keyboard_6_note.ino
+ * @brief QRE1113  6-Note Keyboard
+ *  
+ *  Firmware for 3-key, 6-jack Harpsochord model
+ *
+ *
+ *  ## Wiring
+ *
+ * | Connection     | Pin Left | Pin Right | Connection    |
+ * | -------------- | -------- | --------- | ------------- |
+ * | NC             | D13      | D12       | Rotary CLK    |
+ * | NC             | 3.3v     | D11       | Rotary DATA   |
+ * | NC             | AREF     | D10       | Rotary Switch |
+ * | Jack 0 QRE1113 | A0       | D9        | NC            |
+ * | Jack 1 QRE1113 | A1       | D8        | NC            |
+ * | Jack 2 QRE1113 | A2       | D7        | Jack 5 LED    |
+ * | Jack 3 QRE1113 | A3       | D6        | Jack 4 LED    |
+ * | NC             | A4       | D5        | Jack 3 LED    |
+ * | NC             | A5       | D4        | Jack 2 LED    |
+ * | Jack 4 QRE1113 | A6       | D3        | Jack 1 LED    |
+ * | Jack 5 QRE1113 | A7       | D2        | Jack 0 LED    |
+ * | NC             | 5v       | GND       | GND           |
+ * | NC             | RESET    | RST       | NC            |
+ * | GND            | GND      | RX / D1   | NC            |
+ * | NC             | VIN      | TX / D0   | NC            |
+ *
+ *
+ *
+ *  ## Jack Layout
+ *
+ * ```
+ *    ┌─┐┌─┐┌─┐
+ *    ┤3│┤4│┤5│
+ *    └─┘└─┘└─┘
+ *    ┌─┐┌─┐┌─┐
+ *    │0├│1├│2├
+ *    └─┘└─┘└─┘
+ *
+ *    ┌──┬─┬──┐
+ *    │  │ │  │
+ *    │  │ │  │
+ *    │  │ │  │
+ *    │  └┬┘  │
+ *    │   │   │
+ *    │   │   │
+ *    └───┴───┘
+ * ```
+ */
 //-----------------------------------------------------------------------------
 #include <MIDIUSB.h>
 #include <Rotary.h>

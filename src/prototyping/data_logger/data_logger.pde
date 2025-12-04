@@ -1,12 +1,12 @@
 /**
- * Data Logger
+ * @file data_logger.pde
+ * @brief Data Logger UI
  *
  * Read Derial Data transmitted from Arduino
  *
  * 's' and saves a file if buffer is incomplete
  * 'w' key will be sent over Serial to allow for easy restart
  */
-
 
 import processing.serial.*;
 import java.nio.*;
@@ -19,16 +19,13 @@ int wh = 0; // write head index;
 int fileCount  = 0;
 int startTime, endTime;
 int pix=0;
+
 void setup()
 {
   size(1000, 200);
   String portName = Serial.list()[1];
   arduino = new Serial(this, portName, 230400);
   startTime = millis();
-
-
-
-
   printArray(Serial.list());
   background(0);
 }
