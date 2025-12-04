@@ -24,7 +24,8 @@ void click(Button2& btn) {
     rotary.resetPosition(curKeyIndex, false);
   } else {
     rotary.setIncrement(10);
-    rotary.setUpperBound(1024);
+    // rotary.setUpperBound(1024);
+    rotary.setUpperBound(4096);
     rotary.setLowerBound(0);
     rotary.resetPosition(pluckThresholds[curKeyIndex], false);
   }

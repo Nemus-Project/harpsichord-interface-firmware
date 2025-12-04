@@ -19,34 +19,21 @@
  */
 void readSensors() {
 
-  for (int mux = 0; mux < numMuxChannels; mux++) {
+  for (uint8_t i = 0; i < 7; i++) {
+    
+    digitalWrite(muxPinA, (i >> 0) & 0x1);
+    digitalWrite(muxPinB, (i >> 1) & 0x1);
+    digitalWrite(muxPinC, (i >> 2) & 0x1);
 
-    // switch mux channel
-    digitalWrite(muxPinA, (mux >> 0) & 0x1);
-    digitalWrite(muxPinB, (mux >> 1) & 0x1);
-    digitalWrite(muxPinC, (mux >> 2) & 0x1);
-    // digitalWrite(muxPinD, (mux >> 3) & 0x1);
+    delayMicroseconds(500);
 
-    for (int adc = 0; adc < numPcbs; adc++) {
-
-      int i = mux + (adc * numPcbs);
-
-      sensorWindowReadings[i][windex] = analogRead(A0 + adc);
-
-      uint16_t total = 0;
-
-      for (int avg = 0; avg < avgSize; avg++) {
-        total += sensorWindowReadings[i][avg];
-      }
-
-      currSensorReadings[i] = total / avgSize;
-      // currSensorReadings[i] = analogRead(A0 + adc);
-    }
-  }
-  
-  windex++;
-  if (windex >= avgSize) {
-    windex = 0;
+    currSensorReadings[i + (0 * 7)] = analogRead(A0 + 0);
+    currSensorReadings[i + (1 * 7)] = analogRead(A0 + 1);
+    currSensorReadings[i + (2 * 7)] = analogRead(A0 + 2);
+    currSensorReadings[i + (3 * 7)] = analogRead(A0 + 3);
+    currSensorReadings[i + (4 * 7)] = analogRead(A0 + 4);
+    currSensorReadings[i + (5 * 7)] = analogRead(A0 + 5);
+    currSensorReadings[i + (6 * 7)] = analogRead(A0 + 6);
   }
 
   // pointer swap

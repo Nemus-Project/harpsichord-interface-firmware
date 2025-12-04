@@ -23,6 +23,7 @@ void readPluckFromEEPROM() {
   fram.read(tagAddress, (uint8_t*)&tagRead, 4);
 
   if (tagRead != *((uint32_t*)thresholdTag)) {
+    halt(FRAM_NOT_FOUND);
     // fram.write(tagAddress, thresholdTag, 4);
     // fram.write(pluckValAddress, (uint8_t*)pluckThresholds, numSensors * 4);
   } else {

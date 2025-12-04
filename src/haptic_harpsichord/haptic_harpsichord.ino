@@ -91,7 +91,7 @@ bool executeDebugMode = false;
 /// Debug Mode Rotary behaviour flag
 bool isKeySelectMode = true;
 /// Debug mode serial plot key index
-uint8_t curKeyIndex = key2index(25);
+uint8_t curKeyIndex = key2index(47);
 //-----------------------------------------------------------------------------
 // Multiplexer Variables
 /// Mux Channel Set Pin A
@@ -199,8 +199,6 @@ const uint8_t thresholdTag[4] = { 'D', 'A', 'T', 'A' };
 // const uint8_t minTag[4] = { 'M', 'I', 'N', 'I' };
 ///
 const uint16_t pluckValAddress = tagAddress + 4;
-///
-unsigned long times[1024] = {0};
 //-----------------------------------------------------------------------------
 // MIDI Variables
 /// MIDI Communication over USB Object, see the PluggableUSBMIDI library
@@ -217,11 +215,14 @@ void setup() {
   digitalWrite(PIN_ENABLE_I2C_PULLUP, LOW);
   digitalWrite(PIN_ENABLE_SENSORS_3V3, LOW);
   // digitalWrite(LED_PWR, LOW);
+
   /// setup mux
   pinMode(muxPinA, OUTPUT);
   pinMode(muxPinB, OUTPUT);
   pinMode(muxPinC, OUTPUT);
 
+  pinMode(LED_BUILTIN, OUTPUT);
+  
   /// init LEDs
   pinMode(LEDR, OUTPUT);
   pinMode(LEDG, OUTPUT);
@@ -231,22 +232,21 @@ void setup() {
   digitalWrite(LEDG, HIGH);
   digitalWrite(LEDB, HIGH);
 
-  for (int i = 0; i < numSensors; i++) {
-    sensorAvgMinima[i] = 1024;
-    pluckThresholds[i] = 500;
-  }
+  // for (int i = 0; i < numSensors; i++) {
+  //   sensorAvgMinima[i] = 1024;
+  //   pluckThresholds[i] = 500;
+  // }
 
   leds.begin();
   leds.clear();
-  
-  // /// setup EEPROM
-  // if (!fram.begin())
-  //   halt(FRAM_NOT_FOUND);
 
-  // readPluckFromEEPROM();
+  analogReadResolution(12);
 
-  // calibrarte sensors
-  // calibrate();
+  /// setup EEPROM
+  if (!fram.begin())
+    halt(FRAM_NOT_FOUND);
+
+  readPluckFromEEPROM();
 
   if (button.isPressed() or ALWAYS_DEBUG) {
     debugLoop();
@@ -258,34 +258,15 @@ void setup() {
  * Listen to sensor values and generate MIDI one those thresholds have been crossed
  */
 void loop() {
+  readSensors();
 
-  // readSensors();
-  // rotary.loop();
-  // button.loop();
-
-  // for (int i = 0; i < numSensors; i++) {
-  //   if (currSensorReadings[i] < pluckThresholds[i] and prevSensorReadings[i] > pluckThresholds[i]) {
-  //     noteOff(0, index2note(i), 100);
-  //   } else if (currSensorReadings[i] > pluckThresholds[i] and prevSensorReadings[i] < pluckThresholds[i]) {
-  //     noteOn(0, index2note(i), 100);
-  //   }
-  // }
-
-  // readCount++;
-
-  // if (readCount > 2048) {
-  //   readCount = 0;
-  //   Serial.println(millis() - lastRead);
-  //   lastRead = millis();
-  // }
-
-    if (millis() - now > 16) {
-      // rainbow(step++);
-      breath(step++);
-      now = millis();
+  for (int i = 0; i < numSensors; i++) {
+    if (currSensorReadings[i] < pluckThresholds[i] and prevSensorReadings[i] > pluckThresholds[i]) {
+      noteOff(0, index2note(i), 100);
+    } else if (currSensorReadings[i] > pluckThresholds[i] and prevSensorReadings[i] < pluckThresholds[i]) {
+      noteOn(0, index2note(i), 100);
     }
-    // rotary.loop();
-  
+  }
 }
 
 /**

@@ -43,20 +43,21 @@
  */
 void printJackReading(byte index) {
   Serial.print("m:");
-  Serial.print(0);
+  Serial.print(750);
   Serial.print(' ');
 
   Serial.print("M:");
-  Serial.print(1024);
+  Serial.print(1200);
+  // Serial.print(1024);
   Serial.print(' ');
   
-  Serial.print("kM:");
-  Serial.print(sensorAvgMaxima[index]);
-  Serial.print(' ');
+  // Serial.print("kM:");
+  // Serial.print(sensorAvgMaxima[index]);
+  // Serial.print(' ');
 
-  Serial.print("km:");
-  Serial.print(sensorAvgMinima[index]);
-  Serial.print(' ');
+  // Serial.print("km:");
+  // Serial.print(sensorAvgMinima[index]);
+  // Serial.print(' ');
 
   Serial.print("K");
   Serial.print(index2key(index));
