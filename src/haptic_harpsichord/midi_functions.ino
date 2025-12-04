@@ -1,5 +1,5 @@
 /**
- * @file midi_functions.h
+ * @file midi_functions.ino
  * @brief Utility functions for generating MIDI
  *
  * If the MIDI library or MIDI technology used is changed, those
