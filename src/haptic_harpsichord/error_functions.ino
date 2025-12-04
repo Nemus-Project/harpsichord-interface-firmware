@@ -36,6 +36,8 @@ void blinkRGB(size_t ledPin, unsigned long duration, unsigned long pause = 0, by
  */
 void halt(HapticHarpsichordErrorCodes errorCode) {
 
+  pinMode(LED_BUILTIN, OUTPUT);
+  
   digitalWrite(LEDR, HIGH);
   digitalWrite(LEDG, HIGH);
   digitalWrite(LEDB, HIGH);

@@ -13,7 +13,7 @@
  * ## Pinout
  *
  * |     Connection | Pin Left | Pin Right | Connection      |
- * | -------------: | -------: | :-------- | :-------------- |
+ * | -------------: | :------- | --------: | :-------------- |
  * | EEPROM SPI CLK |      D13 | D12       | Rotary CLK      |
  * |     EEPROM VCC |     3.3v | D11       | Rotary DATA     |
  * |             NC |     AREF | D10       | Rotary Switch   |
@@ -272,7 +272,6 @@ void setup() {
   pinMode(LEDR, OUTPUT);
   pinMode(LEDG, OUTPUT);
   pinMode(LEDB, OUTPUT);
-  pinMode(LED_BUILTIN, OUTPUT);
 
   digitalWrite(LEDR, HIGH);
   digitalWrite(LEDG, HIGH);
