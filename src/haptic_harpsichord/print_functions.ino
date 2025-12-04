@@ -39,7 +39,7 @@
  *
  * Normalising lines for a 10-bit DAC are hardcoded
  *
- * @param index 
+ * @param index
  */
 void printJackReading(byte index) {
   Serial.print("m:");
@@ -50,7 +50,7 @@ void printJackReading(byte index) {
   Serial.print(1200);
   // Serial.print(1024);
   Serial.print(' ');
-  
+
   Serial.print("K");
   Serial.print(index2key(index));
   Serial.print(":");
@@ -68,10 +68,24 @@ void printJackReading(byte index) {
  *
  * @param index 
  */
-void printJackThreshold(byte index)
-{
-  Serial.print("T");
-  Serial.print(index2key(index));
-  Serial.print(":");
-  Serial.print(singlePluckThresholds[index]);
+void printJackThreshold(byte index) {
+  switch (thresholdType) {
+    case SINGLE_THRESHOLD:
+      Serial.print("T");
+      Serial.print(index2key(index));
+      Serial.print(":");
+      Serial.print(singlePluckThresholds[index]);
+      break;
+    case HYSTERETIC:
+      Serial.print("T");
+      Serial.print(index2key(index));
+      Serial.print(":");
+      Serial.print(pluckThresholds[index]);
+      Serial.print(" ");
+      Serial.print("R");
+      Serial.print(index2key(index));
+      Serial.print(":");
+      Serial.print(releaseThresholds[index]);
+      break;
+  }
 }

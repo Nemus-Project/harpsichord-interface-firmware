@@ -16,7 +16,7 @@
  * @param pitch  MIDI pitch 7-bit
  * @param velocity  MIDI velocity pitch 7-bit
  */
-void noteOn(byte channel, byte pitch, byte velocity) {  
+void noteOn(byte channel, byte pitch, byte velocity) {
   MidiUSB.write(MIDIMessage::NoteOn(pitch, velocity, channel));
 }
 
@@ -63,10 +63,15 @@ void aftertouch(byte channel, byte key, byte pressure) {
  * @param transpose transposes the entire keyboard up or down
  * @return byte MIDI note value
  */
-byte index2note(byte index, int8_t transpose)
-{
+byte index2note(byte index, int8_t transpose) {
   // NOTE: Short Octave should go in here
-  // bare in mind that the first and last two 
-  // sensors are unused in the 45 key configuration.  
-  return numSensors - 1 - index + 48 + transpose;
+  // bare in mind that the first and last two
+  // sensors are unused in the 45 key configuration.
+
+  switch (jackRegister) {
+    case FRONT_REGISTER:
+      return numSensors - 1 - index + 48 + transpose;
+    case BACK_REGISTER:
+      return numSensors - (numSensors - 1 - index + 48 + transpose);
+  }
 }

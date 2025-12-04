@@ -16,18 +16,55 @@
  * @param btn reference to a Button2 library button object, which represents the momentary switch on the rotary encoder.
  */
 void click(Button2& btn) {
-  isKeySelectMode = !isKeySelectMode;
-  if (isKeySelectMode) {
-    rotary.setIncrement(1);
-    rotary.setUpperBound(numSensors);
-    rotary.setLowerBound(0);
-    rotary.resetPosition(curKeyIndex, false);
-  } else {
-    rotary.setIncrement(10);
-    // rotary.setUpperBound(1024);
-    rotary.setUpperBound(4096);
-    rotary.setLowerBound(0);
-    rotary.resetPosition(singlePluckThresholds[curKeyIndex], false);
+
+  // Set next mode
+  switch (rotaryMode) {
+    case KEY_SELECT:
+      rotaryMode = (thresholdType == SINGLE_THRESHOLD) ? EDIT_SINGLE_THRESHOLD : EDIT_PLUCK_THRESHOLD;
+      break;
+    case EDIT_PLUCK_THRESHOLD:
+      rotaryMode = EDIT_RELEASE_THRESHOLD;
+      break;
+    case REGISTER_SELECT:
+      waitingForInput = false;
+    case EDIT_RELEASE_THRESHOLD:
+    case EDIT_SINGLE_THRESHOLD:
+      rotaryMode = KEY_SELECT;
+      break;      
+  }
+
+  // New mode setup
+  switch (rotaryMode) {
+    case KEY_SELECT:
+      rotary.setIncrement(1);
+      rotary.setUpperBound(numSensors);
+      rotary.setLowerBound(0);
+      rotary.resetPosition(curKeyIndex, false);
+      break;
+    case EDIT_SINGLE_THRESHOLD:
+      rotary.setIncrement(10);
+      rotary.setUpperBound(4096);
+      rotary.setLowerBound(0);
+      rotary.resetPosition(singlePluckThresholds[curKeyIndex], false);
+      break;
+    case EDIT_PLUCK_THRESHOLD:
+      rotary.setIncrement(10);
+      rotary.setUpperBound(4096);
+      rotary.setLowerBound(0);
+      rotary.resetPosition(pluckThresholds[curKeyIndex], false);
+      break;
+    case EDIT_RELEASE_THRESHOLD:
+      rotary.setIncrement(10);
+      rotary.setUpperBound(4096);
+      rotary.setLowerBound(0);
+      rotary.resetPosition(releaseThresholds[curKeyIndex], false);
+      break;
+    case REGISTER_SELECT:
+      rotary.setIncrement(1);
+      rotary.setUpperBound(1);
+      rotary.setLowerBound(0);
+      rotary.resetPosition(0, false);
+      break;    
   }
 }
 
@@ -59,13 +96,38 @@ void doubleclick(Button2& btn) {
  * @param r reference to a Rotary library rotary object, which interfaces with the rotary encoder. 
  */
 void rotate(Rotary& r) {
-  // Serial.println(r.directionToString(r.getDirection()));
-  if (isKeySelectMode) {
-    curKeyIndex = r.getPosition();
-    leds.fill(leds.Color(0, 0, 0), 0, numSensors);
-    leds.setPixelColor(curKeyIndex, 0, 0, 255);
-    leds.show();
-  } else {
-    singlePluckThresholds[curKeyIndex] = r.getPosition();
+
+  switch (rotaryMode) {
+    case KEY_SELECT:
+      curKeyIndex = r.getPosition();
+      leds.fill(leds.Color(0, 0, 0), 0, numSensors);
+      leds.setPixelColor(curKeyIndex, 0, 0, 255);
+      leds.show();
+      break;
+    case EDIT_SINGLE_THRESHOLD:
+      singlePluckThresholds[curKeyIndex] = r.getPosition();
+      break;
+    case EDIT_PLUCK_THRESHOLD:
+      pluckThresholds[curKeyIndex] = r.getPosition();
+      break;
+    case EDIT_RELEASE_THRESHOLD:
+      releaseThresholds[curKeyIndex] = r.getPosition();
+      break;
+    case REGISTER_SELECT:
+      jackRegister = (r.getPosition()) ? FRONT_REGISTER : BACK_REGISTER;
+
+      switch (jackRegister) {
+        case FRONT_REGISTER:
+          leds.fill(leds.Color(0, 0, 0), 0, numSensors);
+          leds.fill(leds.Color(0, 100, 0), numSensors / 2, numSensors / 2);
+          break;
+        case BACK_REGISTER:
+          leds.fill(leds.Color(0, 0, 0), 0, numSensors);
+          leds.fill(leds.Color(0, 100, 0), 0, numSensors / 2);
+          break;
+      }
+
+      leds.show();
+      break;
   }
 }

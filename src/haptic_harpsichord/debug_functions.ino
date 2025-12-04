@@ -22,9 +22,6 @@ void setupDebugMode() {
   digitalWrite(LEDB, LOW);
   digitalWrite(LEDB, LOW);
   executeDebugMode = true;
-  rotary.setChangedHandler(rotate);
-  button.setDoubleClickHandler(doubleclick);
-  button.setClickHandler(click);
 }
 
 /**
@@ -64,6 +61,49 @@ void debugLoop() {
 
   exitDebug();
 }
+
+void singleThresholdDebugLoop() {
+  while (executeDebugMode) {
+
+    readSensors();
+    rotary.loop();
+    button.loop();
+
+    for (int i = 0; i < numSensors; i++) {
+      if (currSensorReadings[i] < singlePluckThresholds[i] and prevSensorReadings[i] > singlePluckThresholds[i]) {
+        noteOff(0, index2note(i), 100);
+      } else if (currSensorReadings[i] > singlePluckThresholds[i] and prevSensorReadings[i] < singlePluckThresholds[i]) {
+        noteOn(0, index2note(i), 100);
+      }
+    }
+
+    printJackReading(curKeyIndex);
+    printJackThreshold(curKeyIndex);
+    Serial.println();
+  }
+}
+
+void hystereticDebugLoop() {
+  while (executeDebugMode) {
+
+    readSensors();
+    rotary.loop();
+    button.loop();
+
+    for (int i = 0; i < numSensors; i++) {
+      if (currSensorReadings[i] < pluckThresholds[i] and prevSensorReadings[i] > pluckThresholds[i]) {
+        noteOff(0, index2note(i), 100);
+      } else if (currSensorReadings[i] > releaseThresholds[i] and prevSensorReadings[i] < releaseThresholds[i]) {
+        noteOn(0, index2note(i), 100);
+      }
+    }
+
+    printJackReading(curKeyIndex);
+    printJackThreshold(curKeyIndex);
+    Serial.println();
+  }
+}
+
 
 /**
  * @brief 

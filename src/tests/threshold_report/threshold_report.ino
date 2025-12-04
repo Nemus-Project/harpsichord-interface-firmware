@@ -100,6 +100,9 @@ void printInputOptions() {
   Serial.println("- f:  set default threshold of 1000");
   Serial.println("- e:  set custom threshold (0-4096)");
 }
+
+//-----------------------------------------------------------------------------
+
 void inputDefaultThreshold() {
   printInputOptions();
 

@@ -78,6 +78,7 @@ enum JackRegister {
 ///
 enum RotaryMode {
   KEY_SELECT,
+  EDIT_SINGLE_THRESHOLD,
   EDIT_PLUCK_THRESHOLD,
   EDIT_RELEASE_THRESHOLD,
   REGISTER_SELECT,
@@ -139,6 +140,8 @@ uint16_t* prevSensorReadings = sensorReadingsB;
 uint16_t* currSensorReadings = sensorReadingsA;
 ///
 uint16_t* tempPointer;
+///
+ThresholdType thresholdType = SINGLE_THRESHOLD;
 //-----------------------------------------------------------------------------
 // Jack States
 ///
@@ -159,14 +162,14 @@ JackRegister jackRegister = FRONT_REGISTER;
 const size_t ledPin = 9;
 ///
 Adafruit_NeoPixel leds(numSensors, ledPin, NEO_GRB + NEO_KHZ800);
-/// used during animation for current millis time 
+/// used during animation for current millis time
 unsigned long now = 0;
 /// step size for animation: static to avoid name collision
 static int step = 0;
 ///
-const uint32_t keySelectColor            = leds.Color(0, 0, 100);
+const uint32_t keySelectColor = leds.Color(0, 0, 100);
 ///
-const uint32_t editPluckThresholdColor   = leds.Color(0, 100, 0);
+const uint32_t editPluckThresholdColor = leds.Color(0, 100, 0);
 ///
 const uint32_t editReleaseThresholdColor = leds.Color(100, 0, 100);
 ///
@@ -193,6 +196,8 @@ const byte INCREMENT = 1;
 Rotary rotary = Rotary(ROTARY_PINA, ROTARY_PINB, CLICKS_PER_STEP, MIN_POS, MAX_POS, START_POS, INCREMENT);
 ///
 Button2 button = Button2(ROTARY_PINC);
+///
+RotaryMode rotaryMode = KEY_SELECT;
 //-----------------------------------------------------------------------------
 // EEPROM Variables
 ///
@@ -235,6 +240,12 @@ const uint16_t registerTypeAddress = releaseValueAddress + (numSensors * 2);
 // MIDI Variables
 /// MIDI Communication over USB Object, see the PluggableUSBMIDI library
 USBMIDI MidiUSB;
+//-----------------------------------------------------------------------------
+// Misc
+/// Use when waiting for user input from the serial port or rotary encoder
+bool waitingForInput = false;
+//-----------------------------------------------------------------------------
+
 /**
  * @brief Arduino setup function
  * 
@@ -268,6 +279,10 @@ void setup() {
 
   analogReadResolution(12);
 
+  rotary.setChangedHandler(rotate);
+  button.setDoubleClickHandler(doubleclick);
+  button.setClickHandler(click);
+
   /// setup EEPROM
   if (!fram.begin())
     halt(FRAM_NOT_FOUND);
@@ -295,6 +310,7 @@ void loop() {
     }
   }
 }
+
 /**
  * @brief Translate from key index to key number
  * 
@@ -326,7 +342,45 @@ constexpr byte key2index(byte k) {
  *
  * @see JackRegister
  */
-void setRegister()
-{
+void setRegister() {
+  Serial.println("Set the jack register. 1: front, 2: back");
 
+  waitingForInput = true;
+  rotaryMode = REGISTER_SELECT;
+
+  while (waitingForInput) {
+    rotary.loop();
+
+    if (Serial.available()) {
+
+      char option = Serial.read();
+      clearSerialInputBuffer();
+
+      switch (option) {
+        case '1':
+          jackRegister = FRONT_REGISTER;
+          waitingForInput = false;
+          break;
+        case '2':
+          jackRegister = BACK_REGISTER;
+          waitingForInput = false;
+          break;
+        default:
+          Serial.println("invalid option:");
+          break;
+      }
+    }
+  }
+}
+
+/**
+ * @brief Clears the Serial Input Buffer
+ * 
+ * Given the Serial input options are relativley simple, this functions 
+ * can be use to clear the input buffer and avoid mistypes
+ *
+ */
+void clearSerialInputBuffer() {
+  while (Serial.available())
+    Serial.read();
 }
