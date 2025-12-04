@@ -20,14 +20,63 @@ void readPluckFromEEPROM() {
 
   uint32_t tagRead;
 
-  fram.read(tagAddress, (uint8_t*)&tagRead, 4);
+  // Single Threshold
+  fram.read(singleThresholdTagAddress, (uint8_t*)&tagRead, 4);
 
-  if (tagRead != *((uint32_t*)thresholdTag)) {
-    halt(FRAM_NOT_FOUND);
-    // fram.write(tagAddress, thresholdTag, 4);
-    // fram.write(pluckValAddress, (uint8_t*)pluckThresholds, numSensors * 4);
+  if (tagRead != *((uint32_t*)singleThresholdTag)) {
+    fram.write(singleThresholdTagAddress, singleThresholdTag, 4);
+
+    for (int i = 0; i < numSensors; i++)
+      singlePluckThresholds[i] = 800;
+
+    fram.writeEnable(true);
+    fram.write(thresholdValueAddress, (uint8_t*)singlePluckThresholds, numSensors * 2);
   } else {
-    fram.read(pluckValAddress, (uint8_t*)pluckThresholds, numSensors * 2);
+    fram.read(thresholdValueAddress, (uint8_t*)singlePluckThresholds, numSensors * 2);
+  }
+
+  // Hysteresis Pluck Threshold
+  fram.read(pluckThresholdTagAddress, (uint8_t*)&tagRead, 4);
+
+  if (tagRead != *((uint32_t*)pluckTag)) {
+    fram.write(pluckThresholdTagAddress, pluckTag, 4);
+
+    for (int i = 0; i < numSensors; i++)
+      pluckThresholds[i] = 800;
+
+    fram.writeEnable(true);
+    fram.write(pluckValueAddress, (uint8_t*)pluckThresholds, numSensors * 2);
+  } else {
+    fram.read(pluckValueAddress, (uint8_t*)pluckThresholds, numSensors * 2);
+  }
+
+  // Hysteresis Release Threshold
+  fram.read(releaseThresholdTagAddress, (uint8_t*)&tagRead, 4);
+
+  if (tagRead != *((uint32_t*)releaseTag)) {
+    fram.write(releaseThresholdTagAddress, releaseTag, 4);
+
+    for (int i = 0; i < numSensors; i++)
+      releaseThresholds[i] = 800;
+
+    fram.writeEnable(true);
+    fram.write(releaseValueAddress, (uint8_t*)releaseThresholds, numSensors * 2);
+  } else {
+    fram.read(releaseValueAddress, (uint8_t*)releaseThresholds, numSensors * 2);
+  }
+
+  // Register Select
+  fram.read(registerTypeTagAddress, (uint8_t*)&tagRead, 4);
+
+  if (tagRead != *((uint32_t*)registerTypeTag)) {
+    fram.write(registerTypeTagAddress, registerTypeTag, 4);
+
+    setRegister();
+
+    fram.writeEnable(true);
+    fram.write(registerTypeAddress, (uint8_t*)jackRegister, sizeof(jackRegister));
+  } else {
+    fram.read(registerTypeAddress, (uint8_t*)jackRegister, sizeof(jackRegister));
   }
 }
 
@@ -39,11 +88,11 @@ void readPluckFromEEPROM() {
 void writePluckToEEPROM() {
   fram.writeEnable(true);
 
-  if (!fram.write(tagAddress, thresholdTag, 4))
+  if (!fram.write(singleThresholdTagAddress, singleThresholdTag, 4))
     digitalWrite(LEDR, LOW);
 
   fram.writeEnable(true);
-  if (!fram.write(pluckValAddress, (uint8_t*)pluckThresholds, numSensors * 2))
+  if (!fram.write(thresholdValueAddress, (uint8_t*)singlePluckThresholds, numSensors * 2))
     digitalWrite(LEDR, LOW);
 
   fram.writeEnable(false);

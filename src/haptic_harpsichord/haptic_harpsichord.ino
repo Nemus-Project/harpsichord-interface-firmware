@@ -69,7 +69,25 @@ enum JackState {
   UNKNOWN_KEY_STATE
 };
 
+///
+enum JackRegister {
+  FRONT_REGISTER,
+  BACK_REGISTER
+};
 
+///
+enum RotaryMode {
+  KEY_SELECT,
+  EDIT_PLUCK_THRESHOLD,
+  EDIT_RELEASE_THRESHOLD,
+  REGISTER_SELECT,
+};
+
+///
+enum ThresholdType {
+  SINGLE_THRESHOLD,
+  HYSTERETIC,
+};
 //-----------------------------------------------------------------------------
 #define numSensors 49
 #define numMuxChannels 7
@@ -110,6 +128,8 @@ uint16_t sensorReadingsA[numSensors];
 ///
 uint16_t sensorReadingsB[numSensors];
 ///
+uint16_t singlePluckThresholds[numSensors];
+///
 uint16_t pluckThresholds[numSensors];
 ///
 uint16_t releaseThresholds[numSensors];
@@ -131,17 +151,26 @@ JackState* jackStates = jackStatesA;
 JackState* prevStates = jackStatesB;
 ///
 JackState* tempStatePointer;
+///
+JackRegister jackRegister = FRONT_REGISTER;
 //-----------------------------------------------------------------------------
 // LED Variables
 ///
 const size_t ledPin = 9;
 ///
 Adafruit_NeoPixel leds(numSensors, ledPin, NEO_GRB + NEO_KHZ800);
-///
+/// used during animation for current millis time 
 unsigned long now = 0;
-///
+/// step size for animation: static to avoid name collision
 static int step = 0;
-
+///
+const uint32_t keySelectColor            = leds.Color(0, 0, 100);
+///
+const uint32_t editPluckThresholdColor   = leds.Color(0, 100, 0);
+///
+const uint32_t editReleaseThresholdColor = leds.Color(100, 0, 100);
+///
+uint32_t currentLedColor = keySelectColor;
 //-----------------------------------------------------------------------------
 // Rotary Variables
 ///
@@ -179,13 +208,29 @@ Adafruit_FRAM_SPI fram = Adafruit_FRAM_SPI(FRAM_SCK, FRAM_MISO, FRAM_MOSI, FRAM_
 ///
 const uint8_t addrSizeInBytes = 2;  // Default to address size of two bytes
 ///
-const uint16_t tagAddress = 0;
+const uint16_t singleThresholdTagAddress = 0;
 ///
-const uint8_t thresholdTag[4] = { 'D', 'A', 'T', 'A' };
-// const uint8_t maxTag[4] = { 'M', 'A', 'X', 'I' };
-// const uint8_t minTag[4] = { 'M', 'I', 'N', 'I' };
+const uint8_t singleThresholdTag[4] = { 'D', 'A', 'T', 'A' };
 ///
-const uint16_t pluckValAddress = tagAddress + 4;
+const uint16_t thresholdValueAddress = singleThresholdTagAddress + 4;
+///
+const uint16_t pluckThresholdTagAddress = thresholdValueAddress + (numSensors * 2);
+///
+const uint8_t pluckTag[4] = { 'P', 'L', 'C', 'K' };
+///
+const uint16_t pluckValueAddress = pluckThresholdTagAddress + 4;
+///
+const uint16_t releaseThresholdTagAddress = pluckValueAddress + (numSensors * 2);
+///
+const uint8_t releaseTag[4] = { 'R', 'L', 'S', 'E' };
+///
+const uint16_t releaseValueAddress = releaseThresholdTagAddress + 4;
+///
+const uint16_t registerTypeTagAddress = releaseValueAddress + (numSensors * 2);
+///
+const uint8_t registerTypeTag[4] = { 'R', 'E', 'G', 'I' };
+///
+const uint16_t registerTypeAddress = releaseValueAddress + (numSensors * 2);
 //-----------------------------------------------------------------------------
 // MIDI Variables
 /// MIDI Communication over USB Object, see the PluggableUSBMIDI library
@@ -243,9 +288,9 @@ void loop() {
   readSensors();
 
   for (int i = 0; i < numSensors; i++) {
-    if (currSensorReadings[i] < pluckThresholds[i] and prevSensorReadings[i] > pluckThresholds[i]) {
+    if (currSensorReadings[i] < singlePluckThresholds[i] and prevSensorReadings[i] > singlePluckThresholds[i]) {
       noteOff(0, index2note(i), 100);
-    } else if (currSensorReadings[i] > pluckThresholds[i] and prevSensorReadings[i] < pluckThresholds[i]) {
+    } else if (currSensorReadings[i] > singlePluckThresholds[i] and prevSensorReadings[i] < singlePluckThresholds[i]) {
       noteOn(0, index2note(i), 100);
     }
   }
@@ -272,4 +317,16 @@ constexpr byte key2index(byte k) {
   else if (k < 1)
     k = 1;
   return (numSensors - k);
+}
+
+/**
+ * @brief Set the jack register type
+ * 
+ * Waits for user input via the serial console or the rotary encoder
+ *
+ * @see JackRegister
+ */
+void setRegister()
+{
+
 }

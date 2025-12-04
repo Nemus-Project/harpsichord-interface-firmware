@@ -27,7 +27,7 @@ void click(Button2& btn) {
     // rotary.setUpperBound(1024);
     rotary.setUpperBound(4096);
     rotary.setLowerBound(0);
-    rotary.resetPosition(pluckThresholds[curKeyIndex], false);
+    rotary.resetPosition(singlePluckThresholds[curKeyIndex], false);
   }
 }
 
@@ -66,6 +66,6 @@ void rotate(Rotary& r) {
     leds.setPixelColor(curKeyIndex, 0, 0, 255);
     leds.show();
   } else {
-    pluckThresholds[curKeyIndex] = r.getPosition();
+    singlePluckThresholds[curKeyIndex] = r.getPosition();
   }
 }

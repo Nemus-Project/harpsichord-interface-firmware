@@ -20,9 +20,9 @@ void updateJackStates() {
   for (int i = 0; i < numSensors; i++) {
     if (prevSensorReadings[i] <= releaseThresholds[i])
       jackStates[i] = RELEASED;
-    else if (prevSensorReadings[i] < pluckThresholds[i] and currSensorReadings[i] > pluckThresholds[i])
+    else if (prevSensorReadings[i] < singlePluckThresholds[i] and currSensorReadings[i] > singlePluckThresholds[i])
       jackStates[i] = PLUCK;
-    else if (prevSensorReadings[i] > pluckThresholds[i] and currSensorReadings[i] > pluckThresholds[i])
+    else if (prevSensorReadings[i] > singlePluckThresholds[i] and currSensorReadings[i] > singlePluckThresholds[i])
       jackStates[i] = PLUCKED;
   }
 

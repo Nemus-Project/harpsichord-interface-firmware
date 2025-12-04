@@ -50,9 +50,9 @@ void debugLoop() {
     button.loop();
 
     for (int i = 0; i < numSensors; i++) {
-      if (currSensorReadings[i] < pluckThresholds[i] and prevSensorReadings[i] > pluckThresholds[i]) {
+      if (currSensorReadings[i] < singlePluckThresholds[i] and prevSensorReadings[i] > singlePluckThresholds[i]) {
         noteOff(0, index2note(i), 100);
-      } else if (currSensorReadings[i] > pluckThresholds[i] and prevSensorReadings[i] < pluckThresholds[i]) {
+      } else if (currSensorReadings[i] > singlePluckThresholds[i] and prevSensorReadings[i] < singlePluckThresholds[i]) {
         noteOn(0, index2note(i), 100);
       }
     }
