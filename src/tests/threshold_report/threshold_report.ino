@@ -62,21 +62,15 @@ void setup() {
 
   for (int i = 0; i < 7; i++) {
     Serial.print("------ Board ");
-    Serial.print(i)
-      Serial.println(" ------") for (int j = 0; j < 7; j++) {
+    Serial.print(i);
+      Serial.println(" ------");
+    for (int j = 0; j < 7; j++) {
       Serial.print(j);
       Serial.print(": ");
       Serial.print(pluckThresholds[j]);
       Serial.print(",");
     }
     Serial.println(",");
-  }
-
-  for (int j = 0; j < 7; j++) {
-    Serial.print(j);
-    Serial.print(": ");
-    Serial.print(value[j]);
-    Serial.print(",");
   }
 
   Serial.println();
@@ -101,10 +95,13 @@ void halt() {
 }
 
 //-----------------------------------------------------------------------------
-void inputDefaultThreshold() {
+void printInputOptions() {
   Serial.println("Enter on of the following options");
   Serial.println("- f:  set default threshold of 1000");
   Serial.println("- e:  set custom threshold (0-4096)");
+}
+void inputDefaultThreshold() {
+  printInputOptions();
 
   bool waitingForInput = true;
 
@@ -118,6 +115,7 @@ void inputDefaultThreshold() {
         case 'f':
         case 'F':
           defaultThreshold = 1000;
+          waitingForInput = false;
           break;
         case 'e':
         case 'E':
@@ -129,16 +127,19 @@ void inputDefaultThreshold() {
               if (defaultThreshold < 4096 && defaultThreshold >= 0) {
                 Serial.print("Value Entered: ");
                 Serial.println(defaultThreshold);
-                Serial.println("Enter a value (0-4095) to initialise memory:");
+                Serial.println("Enter a value (0-4095)");
               } else {
                 waitingForInput = false;
               }
             }
           }
           break;
+        default:
+          Serial.print("Option ");
+          Serial.print(option);
+          Serial.println(" is invalid");
+          break;
       }
-
-      waitingForInput = false;
     }
   }
 }
