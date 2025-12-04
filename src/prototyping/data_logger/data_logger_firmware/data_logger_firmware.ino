@@ -1,20 +1,21 @@
-/*
-  Data logging sensors connected to ADC
-
-  Use the accompanying processing sketch to save binary data transmitted over serial
-  to a file.
-
-  Central Loop is a state machine to allow switching between monitoring data via 
-  Arduino IDE's serial plotter and steppinhg through recording and transmission.
-
-  Waits for Pin 12 to go high before continuing and will blink the LED_BUILTIN
-  when finished.
-
-  Serial messages:
-  
-  - `w`: sets to the waiting state
-  - `d`: set to pretty print data for serial plotter
-  
+/**
+ * @file data_logger_firmware.ino
+ * @brief Data logging sensors connected to ADC
+ * 
+ * Use the accompanying processing sketch to save binary data transmitted over serial
+ * to a file.
+ * 
+ * Central Loop is a state machine to allow switching between monitoring data via 
+ * Arduino IDE's serial plotter and steppinhg through recording and transmission.
+ * 
+ * Waits for Pin 12 to go high before continuing and will blink the LED_BUILTIN
+ * when finished.
+ * 
+ * Serial messages:
+ * 
+ * - `w`: sets to the waiting state
+ * - `d`: set to pretty print data for serial plotter
+ * 
 */
 //-----------------------------------------------------------------------------
 #define ADC_RES 12

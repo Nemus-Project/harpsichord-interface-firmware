@@ -1,4 +1,22 @@
-/// Read all sensors and put results in currSensorReadings
+/**
+ * @file sensor_functions.ino
+ * @brief Utilities for reading and interpreting sensor data
+ *
+ * @date 2025-10-11
+ * @author Matthew Hamilton
+ */
+
+/**
+ * @brief Round Robin read of sensors
+ * 
+ * Sensor values are stored in the `currSensorReadings` array
+ *
+ * A pointer swap is implemented so that `currSensorReadings` and `prevSensorReadings` switch
+ * everytime the function is called. 
+ *
+ * A moving average filter is applied using the global variabl `avgSize` to denote window length.
+ * The averaging window index `windex` is incremented on each call.
+ */
 void readSensors() {
 
   for (uint8_t i = 0; i < 7; i++) {
@@ -25,7 +43,12 @@ void readSensors() {
 }
 
 //-----------------------------------------------------------------------------
-/// Read a single sensor and return its raw value
+/**
+ * @brief Read a single sensor and return its raw value
+ * 
+ * @param index key index
+ * @return value of sensor at key index
+ */
 unsigned int readSensor(byte index) {
   int adc = index / numPcbs;
   int mux = index - adc * numPcbs;
@@ -38,26 +61,16 @@ unsigned int readSensor(byte index) {
   return analogRead(A0 + adc);
 }
 
-
-//-----------------------------------------------------------------------------
-void calibrateSensors() {
-  setThresholdsFromEEPROM();
-  readSensors();
-  setAverages();
-}
-
 //-----------------------------------------------------------------------------
 
-void setThresholdsFromEEPROM() {
-}
-
-//-----------------------------------------------------------------------------
-
-void setAverages() {
-}
-
-//-----------------------------------------------------------------------------
-
+/**
+ * @brief Get the On Velocity for a Note On Message
+ * 
+ * Logic for determining Note On velocity given the difference readings of sensor
+ *
+ * @param j key index
+ * @return byte 7-bit velocity value 
+ */
 byte getOnVelocity(int j) {
 
   byte velocity;
@@ -82,6 +95,14 @@ byte getOnVelocity(int j) {
 
 //-----------------------------------------------------------------------------
 
+/**
+ * @brief Get the Off Velocity object
+ *
+ * Logic for determining Note Off velocity given the difference readings of sensor
+ *
+ * @param j key index
+ * @return byte 7-bit velocity value 
+ */
 byte getOffVelocity(int j) {
   byte velocity;
   if (j < 3) {

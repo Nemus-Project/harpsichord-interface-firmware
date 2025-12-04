@@ -1,3 +1,15 @@
+/**
+ * @file print_functions.ino
+ * @brief Utilities for printing data over Serial
+ *
+ * Functions are for priting data to the Arduino IDE Serial monitor
+ * Functions do not print a newline, which will needed to bed added manually
+ * This allows the functions to be mixed and matched and used mor modularly.
+ *
+ * @date 2025-10-11
+ * @author Matthew Hamilton
+ */
+
 // void printJackStates() {
 //   bool anyPrint = false;
 
@@ -18,7 +30,17 @@
 // }
 
 //-----------------------------------------------------------------------------
-
+/**
+ * @brief Print the sensor value for the jack at a given key index 
+ * 
+ * Intended to be used in conjunction with the Arduino IDE serial plotter.
+ * Uses the tagged data format `TAG:VALUE ` and does not terminate
+ * in a new line.
+ *
+ * Normalising lines for a 10-bit DAC are hardcoded
+ *
+ * @param index 
+ */
 void printJackReading(byte index) {
   Serial.print("m:");
   Serial.print(750);
@@ -36,6 +58,16 @@ void printJackReading(byte index) {
   Serial.print(' ');
 }
 
+/**
+ * @brief Print the threhold value for the given key index
+ * 
+ * Intended to be used in conjunction with the Arduino IDE serial plotter.
+ * Prints in the format `T:value `
+ *
+ * Does no terminate in a newline
+ *
+ * @param index 
+ */
 void printJackThreshold(byte index)
 {
   Serial.print("T");

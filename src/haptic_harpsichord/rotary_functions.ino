@@ -1,6 +1,20 @@
-//-----------------------------------------------------------------------------
-// Rotary Callbacks
+/**
+ * @file filename.ino
+ * @brief Rotary Encoder Callbacks
+ *
+ * Any changes to rotary encoder behaviour should be implemented here.
+ *
+ * @date 2025-10-11
+ * @author Matthew Hamilton
+ */
 
+/**
+ * @brief Click calback
+ * 
+ * Switches between threshold change and key select modes
+ *
+ * @param btn reference to a Button2 library button object, which represents the momentary switch on the rotary encoder.
+ */
 void click(Button2& btn) {
   isKeySelectMode = !isKeySelectMode;
   if (isKeySelectMode) {
@@ -17,7 +31,13 @@ void click(Button2& btn) {
   }
 }
 
-
+/**
+ * @brief Double Click Callback
+ *
+ * Saves the current theshold values to EEPROM
+ * 
+ * @param btn reference to a Button2 library button object, which represents the momentary switch on the rotary encoder.
+ */
 void doubleclick(Button2& btn) {
 
   // executeDebugMode = false;
@@ -31,7 +51,13 @@ void doubleclick(Button2& btn) {
   leds.show();
 }
 
-
+/**
+ * @brief Rotate callback
+ * 
+ * Effect of rotation based on value of `isKeySelectMode`. Either selects the key to calibrate or changes the threshold value.
+ *
+ * @param r reference to a Rotary library rotary object, which interfaces with the rotary encoder. 
+ */
 void rotate(Rotary& r) {
   // Serial.println(r.directionToString(r.getDirection()));
   if (isKeySelectMode) {
