@@ -172,6 +172,8 @@ void setup() {
   pinMode(muxPinB, OUTPUT);
   pinMode(muxPinC, OUTPUT);
 
+  pinMode(LED_BUILTIN, OUTPUT);
+
   /// init LEDs
   pinMode(LEDR, OUTPUT);
   pinMode(LEDG, OUTPUT);
