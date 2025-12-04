@@ -100,21 +100,13 @@ const size_t muxPinC = 8;
 // const size_t muxPinD = 9;
 //-----------------------------------------------------------------------------
 // Sensor variables
-uint16_t sensorReadingsA[numSensors];
-uint16_t sensorReadingsB[numSensors];
-// uint16_t lastSensorReading[numSensors];
-uint16_t* tempPointer;
-uint16_t sensorAvgMaxima[numSensors];
-uint16_t sensorAvgMinima[numSensors];
 uint16_t pluckThresholds[numSensors];
 uint16_t releaseThresholds[numSensors];
-uint32_t readCount = 0;
-uint64_t lastRead = 0;
-constexpr byte avgSize = 4;
-uint16_t sensorWindowReadings[numSensors][avgSize];
-byte windex = 0;
+uint16_t sensorReadingsA[numSensors];
+uint16_t sensorReadingsB[numSensors];
 uint16_t* prevSensorReadings = sensorReadingsB;
 uint16_t* currSensorReadings = sensorReadingsA;
+uint16_t* tempPointer;
 //-----------------------------------------------------------------------------
 // Jack States
 JackState jackStatesA[numSensors];
@@ -154,8 +146,6 @@ const uint8_t thresholdTag[4] = { 'D', 'A', 'T', 'A' };
 // const uint8_t maxTag[4] = { 'M', 'A', 'X', 'I' };
 // const uint8_t minTag[4] = { 'M', 'I', 'N', 'I' };
 const uint16_t pluckValAddress = tagAddress + 4;
-
-unsigned long times[1024] = { 0 };
 //-----------------------------------------------------------------------------
 // MIDI Variables
 USBMIDI MidiUSB;
@@ -172,21 +162,15 @@ void setup() {
   pinMode(muxPinB, OUTPUT);
   pinMode(muxPinC, OUTPUT);
 
-  pinMode(LED_BUILTIN, OUTPUT);
-  
   /// init LEDs
   pinMode(LEDR, OUTPUT);
   pinMode(LEDG, OUTPUT);
   pinMode(LEDB, OUTPUT);
+  pinMode(LED_BUILTIN, OUTPUT);
 
   digitalWrite(LEDR, HIGH);
   digitalWrite(LEDG, HIGH);
   digitalWrite(LEDB, HIGH);
-
-  // for (int i = 0; i < numSensors; i++) {
-  //   sensorAvgMinima[i] = 1024;
-  //   pluckThresholds[i] = 500;
-  // }
 
   leds.begin();
   leds.clear();
@@ -205,6 +189,7 @@ void setup() {
 }
 
 void loop() {
+
   readSensors();
 
   for (int i = 0; i < numSensors; i++) {
@@ -214,19 +199,7 @@ void loop() {
       noteOn(0, index2note(i), 100);
     }
   }
-}
 
-void calibrate() {
-  static const int numReading = 8;
-
-  for (int i = 0; i < numSensors; i++) {
-    unsigned long runningTotal = 0;
-
-    for (int k = 0; k < numReading; k++) {
-      runningTotal += readSensor(i);
-    }
-    sensorAvgMaxima[i] = runningTotal /= numReading;
-  }
 }
 
 constexpr byte index2key(byte i) {

@@ -16,35 +16,18 @@ void halt(HapticHarpsichordErrorCodes errorCode) {
   digitalWrite(LEDG, HIGH);
   digitalWrite(LEDB, HIGH);
 
-  while (true) {
-        // blinkRGB(LEDB, 500, 2000, 3);
-        for (int i = 0; i < 3; i++) {          
-          digitalWrite(LED_BUILTIN, HIGH);          
+  switch (errorCode) {
+    case FRAM_NOT_FOUND:
+    default:
+      while (true) {
+        for (int i = 0; i < 3; i++) {
+          digitalWrite(LED_BUILTIN, HIGH);
           delay(500);
           digitalWrite(LED_BUILTIN, LOW);
           delay(500);
-          // leds.fill(leds.Color(20, 0, 0), 0, numSensors);
-          // leds.fill(leds.Color(0, 0, 0), 0, numSensors);
         }
         delay(3000);
       }
-
-  // switch (errorCode) {
-  //   case FRAM_NOT_FOUND:
-  //     while (true) {
-  //       // blinkRGB(LEDB, 500, 2000, 3);
-  //       for (int i = 0; i < 3; i++) {          
-  //         digitalWrite(LED_BUILTIN, HIGH);          
-  //         delay(500);
-  //         digitalWrite(LED_BUILTIN, LOW);
-  //         delay(500);
-  //         // leds.fill(leds.Color(20, 0, 0), 0, numSensors);
-  //         // leds.fill(leds.Color(0, 0, 0), 0, numSensors);
-  //       }
-  //       delay(3000);
-  //     }
-  //     break;
-  //   default:
-  //     break;
-  // }
+      break;
+  }
 }
