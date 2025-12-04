@@ -241,9 +241,9 @@ const uint16_t registerTypeAddress = releaseValueAddress + (numSensors * 2);
 /// MIDI Communication over USB Object, see the PluggableUSBMIDI library
 USBMIDI MidiUSB;
 /// sensor index to note table for the front register
-byte frontRegisterNoteTable[numSensors] = {94, 93, 92, 91, 90, 89, 88, 87, 86, 85, 84, 83, 82, 81, 80, 79, 78, 77, 76, 75, 74, 73, 72, 71, 70, 69, 68, 67, 66, 65, 64, 63, 62, 61, 60, 59, 58, 57, 56, 55, 54, 53, 52, 51, 50, 49, 48, 47, 46};
+byte frontRegisterNoteTable[numSensors] = { 94, 93, 92, 91, 90, 89, 88, 87, 86, 85, 84, 83, 82, 81, 80, 79, 78, 77, 76, 75, 74, 73, 72, 71, 70, 69, 68, 67, 66, 65, 64, 63, 62, 61, 60, 59, 58, 57, 56, 55, 54, 53, 52, 51, 50, 49, 48, 47, 46 };
 /// sensor index to note table for the back register
-byte backRegisterNoteTable[numSensors]  = {46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94};
+byte backRegisterNoteTable[numSensors] = { 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94 };
 //-----------------------------------------------------------------------------
 // Misc
 /// Use when waiting for user input from the serial port or rotary encoder
@@ -313,6 +313,32 @@ void loop() {
     }
   }
 }
+
+void singleThresholdLoop() {
+  readSensors();
+
+  for (int i = 0; i < numSensors; i++) {
+    if (currSensorReadings[i] < singlePluckThresholds[i] and prevSensorReadings[i] > singlePluckThresholds[i]) {
+      noteOff(0, index2note(i), 100);
+    } else if (currSensorReadings[i] > singlePluckThresholds[i] and prevSensorReadings[i] < singlePluckThresholds[i]) {
+      noteOn(0, index2note(i), 100);
+    }
+  }
+}
+
+void hysteresisLoop() {
+
+  readSensors();
+
+  for (int i = 0; i < numSensors; i++) {
+    if (currSensorReadings[i] < pluckThresholds[i] and prevSensorReadings[i] > pluckThresholds[i]) {
+      noteOff(0, index2note(i), 100);
+    } else if (currSensorReadings[i] > releaseThresholds[i] and prevSensorReadings[i] < releaseThresholds[i]) {
+      noteOn(0, index2note(i), 100);
+    }
+  }
+}
+
 
 /**
  * @brief Translate from key index to key number

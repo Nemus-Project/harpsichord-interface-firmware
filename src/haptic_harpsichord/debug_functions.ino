@@ -38,25 +38,13 @@ void debugLoop() {
   leds.setPixelColor(curKeyIndex, 0, 0, 255);
   leds.show();
 
-  while (executeDebugMode) {
-
-    unsigned long start = micros();
-
-    readSensors();
-    rotary.loop();
-    button.loop();
-
-    for (int i = 0; i < numSensors; i++) {
-      if (currSensorReadings[i] < singlePluckThresholds[i] and prevSensorReadings[i] > singlePluckThresholds[i]) {
-        noteOff(0, index2note(i), 100);
-      } else if (currSensorReadings[i] > singlePluckThresholds[i] and prevSensorReadings[i] < singlePluckThresholds[i]) {
-        noteOn(0, index2note(i), 100);
-      }
-    }
-
-    printJackReading(curKeyIndex);
-    printJackThreshold(curKeyIndex);
-    Serial.println();
+  switch (thresholdType) {
+    case SINGLE_THRESHOLD:
+      singleThresholdDebugLoop();
+      break;
+    case HYSTERETIC:
+      hystereticDebugLoop();
+      break;
   }
 
   exitDebug();
