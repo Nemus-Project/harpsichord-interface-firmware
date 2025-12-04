@@ -25,7 +25,8 @@ void printJackReading(byte index) {
   Serial.print(' ');
 
   Serial.print("M:");
-  Serial.print(1024);
+  Serial.print(4096);
+  // Serial.print(1024);
   Serial.print(' ');
   
   Serial.print("kM:");

@@ -91,7 +91,7 @@ bool executeDebugMode = false;
 //-----------------------------------------------------------------------------
 // Operation Mode Variables
 bool isKeySelectMode = true;
-uint8_t curKeyIndex = key2index(25);
+uint8_t curKeyIndex = key2index(47);
 //-----------------------------------------------------------------------------
 // Multiplexer Variables
 const size_t muxPinA = 6;
@@ -166,6 +166,7 @@ void setup() {
   digitalWrite(PIN_ENABLE_I2C_PULLUP, LOW);
   digitalWrite(PIN_ENABLE_SENSORS_3V3, LOW);
   // digitalWrite(LED_PWR, LOW);
+
   /// setup mux
   pinMode(muxPinA, OUTPUT);
   pinMode(muxPinB, OUTPUT);
@@ -180,13 +181,15 @@ void setup() {
   digitalWrite(LEDG, HIGH);
   digitalWrite(LEDB, HIGH);
 
-  for (int i = 0; i < numSensors; i++) {
-    sensorAvgMinima[i] = 1024;
-    pluckThresholds[i] = 500;
-  }
+  // for (int i = 0; i < numSensors; i++) {
+  //   sensorAvgMinima[i] = 1024;
+  //   pluckThresholds[i] = 500;
+  // }
 
   leds.begin();
   leds.clear();
+
+  analogReadResolution(12);
 
   /// setup EEPROM
   if (!fram.begin())
