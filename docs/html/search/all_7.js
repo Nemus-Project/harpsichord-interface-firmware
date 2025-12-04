@@ -1,9 +1,0 @@
-var searchData=
-[
-  ['halt_0',['halt',['../da/dc6/error__functions_8ino.html#ac3b936df9d26c7eabb15e67d521ad921',1,'error_functions.ino']]],
-  ['haptic_5fharpsichord_1',['&lt;span class=&quot;tt&quot;&gt;haptic_harpsichord/&lt;/span&gt;',['../index.html#autotoc_md19',1,'']]],
-  ['haptic_5fharpsichord_2eino_2',['haptic_harpsichord.ino',['../d1/d58/haptic__harpsichord_8ino.html',1,'']]],
-  ['hardware_20required_3',['Hardware Required',['..//Users/admin/Documents/GitHub/harpsichord-interface-firmware/src/prototyping/esp-idf/bench-mark/README.md#autotoc_md8',1,'']]],
-  ['harpsichord_20interface_20firmware_4',['NEMUS Harpsichord Interface Firmware',['../index.html',1,'']]],
-  ['how_20to_20use_20example_5',['How to Use Example',['..//Users/admin/Documents/GitHub/harpsichord-interface-firmware/src/prototyping/esp-idf/bench-mark/README.md#autotoc_md7',1,'']]]
-];
