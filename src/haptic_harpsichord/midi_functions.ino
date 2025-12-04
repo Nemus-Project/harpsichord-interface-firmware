@@ -59,19 +59,19 @@ void aftertouch(byte channel, byte key, byte pressure) {
  * Overrides for short octave or transposition should happen here
  * Currently hard cded to start from C3
  *
- * @param index key index
+ * @param i key index
  * @param transpose transposes the entire keyboard up or down
  * @return byte MIDI note value
  */
-byte index2note(byte index, int8_t transpose) {
+byte index2note(byte i, int8_t transpose) {
   // NOTE: Short Octave should go in here
   // bare in mind that the first and last two
   // sensors are unused in the 45 key configuration.
 
   switch (jackRegister) {
     case FRONT_REGISTER:
-      return numSensors - 1 - index + 48 + transpose;
+      return frontRegisterNoteTable[i] + transpose;
     case BACK_REGISTER:
-      return numSensors - (numSensors - 1 - index + 48 + transpose);
+      return backRegisterNoteTable[i] + transpose;
   }
 }
