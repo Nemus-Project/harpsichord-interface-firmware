@@ -68,6 +68,8 @@ enum JackState {
   RELEASED,
   UNKNOWN_KEY_STATE
 };
+
+
 //-----------------------------------------------------------------------------
 #define numSensors 49
 #define numMuxChannels 7
@@ -247,7 +249,7 @@ void loop() {
       noteOn(0, index2note(i), 100);
     }
   }
-
+}
 /**
  * @brief Translate from key index to key number
  * 
