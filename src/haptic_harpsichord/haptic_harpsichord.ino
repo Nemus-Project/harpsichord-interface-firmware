@@ -188,14 +188,11 @@ void setup() {
   leds.begin();
   leds.clear();
 
-  // /// setup EEPROM
-  // if (!fram.begin())
-  //   halt(FRAM_NOT_FOUND);
+  /// setup EEPROM
+  if (!fram.begin())
+    halt(FRAM_NOT_FOUND);
 
-  // readPluckFromEEPROM();
-
-  // calibrarte sensors
-  // calibrate();
+  readPluckFromEEPROM();
 
   if (button.isPressed() or ALWAYS_DEBUG) {
     debugLoop();

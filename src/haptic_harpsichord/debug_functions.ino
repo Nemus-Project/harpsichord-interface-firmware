@@ -22,11 +22,6 @@ void debugLoop() {
 
   while (executeDebugMode) {
 
-    // if (millis() - now > 16) {
-    //  rainbow(step++);
-    //   // breath(step++);
-    //   now = millis();
-    // }
     unsigned long start = micros();
 
     readSensors();
@@ -44,25 +39,10 @@ void debugLoop() {
     printJackReading(curKeyIndex);
     printJackThreshold(curKeyIndex);
     Serial.println();
-
-    times[readCount] = micros() - start;
-    readCount++;
   }
 
   exitDebug();
 }
-
-// void setCurrentKey() {
-//   int thresh;
-//   for (int i = 0; i < numSensors; i++) {
-//     if (readSensor(i) < thresh and i != curKeyIndex) {
-//       curKeyIndex = i;
-//       leds.fill(leds.Color(0, 0, 0), 0, numSensors);
-//       leds.setPixelColor(curKeyIndex, 0, 0, 100);
-//       leds.show();
-//     }
-//   }
-// }
 
 void exitDebug() {
   digitalWrite(LEDB, LOW);
