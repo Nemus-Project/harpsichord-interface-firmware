@@ -7,7 +7,7 @@ void readSensors() {
     digitalWrite(muxPinB, (i >> 1) & 0x1);
     digitalWrite(muxPinC, (i >> 2) & 0x1);
 
-    delayMicroseconds(1500);
+    delayMicroseconds(500);
 
     currSensorReadings[i + (0 * 7)] = analogRead(A0 + 0);
     currSensorReadings[i + (1 * 7)] = analogRead(A0 + 1);
