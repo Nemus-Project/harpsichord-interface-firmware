@@ -58,7 +58,7 @@ The firmware uses the connected FRAM to read and write threshold values as well 
 - Hysteretic Release Threshold
 - Jack Register
 
-The firmware will check that all memory areas have been initialised. If you they have, a report of the values will be printed over the serial connection. If any memory area has not been initilaised a prompt will appear over the serial connetion. Send options and commands over a serial connections. You can use the Arduino IDE's _Serial Monitor_ to achieve this.
+The firmware will check that all memory areas have been initialised. If you they have, a report of the values will be printed over the serial connection. If any memory area has not been initilaised a prompt will appear over the serial connetion. Send options and commands over a serial connections. You can use the Arduino IDE's [_Serial Monitor_](https://docs.arduino.cc/software/ide-v2/tutorials/ide-v2-serial-monitor/) to achieve this.
 
 ### `haptic_harpsichord/`
 
