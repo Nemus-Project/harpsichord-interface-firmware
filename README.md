@@ -51,7 +51,7 @@ All firmware in `src/` directory which consists of
 
 ### Memory Initialisation
 
-The firmware uses the connected FRAM to read and write threshold values as well as set which jack register is being used. Use the `src/fram_debug` project to interact with the FRAM directly and set the values 
+The firmware uses the connected FRAM to read and write threshold values as well as set which jack register is being used. Use the [`src/tests/fram_debug`](./tree/main/src/tests/fram_debug) project to interact with the FRAM directly and set the values 
 
 - Single Threshold
 - Hysteretic Pluck Threshold
