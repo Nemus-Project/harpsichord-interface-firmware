@@ -77,7 +77,7 @@ void printJackThreshold(byte index) {
       Serial.print(singlePluckThresholds[index]);
       break;
     case HYSTERETIC:
-      Serial.print("T");
+      Serial.print("P");
       Serial.print(index2key(index));
       Serial.print(":");
       Serial.print(pluckThresholds[index]);
