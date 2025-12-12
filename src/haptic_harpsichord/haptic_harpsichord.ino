@@ -141,7 +141,7 @@ uint16_t* currSensorReadings = sensorReadingsA;
 ///
 uint16_t* tempPointer;
 ///
-ThresholdType thresholdType = SINGLE_THRESHOLD;
+ThresholdType thresholdType = HYSTERETIC;
 //-----------------------------------------------------------------------------
 // Jack States
 ///
