@@ -340,9 +340,7 @@ void hysteresisLoop() {
         noteOn(0, index2note(i), 100);
       }
     }
-    
   }
-
 }
 
 

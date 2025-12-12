@@ -30,7 +30,7 @@ void click(Button2& btn) {
     case EDIT_RELEASE_THRESHOLD:
     case EDIT_SINGLE_THRESHOLD:
       rotaryMode = KEY_SELECT;
-      break;      
+      break;
   }
 
   // New mode setup
@@ -64,7 +64,7 @@ void click(Button2& btn) {
       rotary.setUpperBound(1);
       rotary.setLowerBound(0);
       rotary.resetPosition(0, false);
-      break;    
+      break;
   }
 }
 
@@ -97,21 +97,26 @@ void doubleclick(Button2& btn) {
  */
 void rotate(Rotary& r) {
 
+  leds.fill(leds.Color(0, 0, 0), 0, numSensors);
+
   switch (rotaryMode) {
     case KEY_SELECT:
       curKeyIndex = r.getPosition();
-      leds.fill(leds.Color(0, 0, 0), 0, numSensors);
-      leds.setPixelColor(curKeyIndex, 0, 0, 255);
-      leds.show();
+
+      leds.setPixelColor(curKeyIndex, keySelectColor);
+
       break;
     case EDIT_SINGLE_THRESHOLD:
       singlePluckThresholds[curKeyIndex] = r.getPosition();
+      leds.setPixelColor(curKeyIndex, editPluckThresholdColor);
       break;
     case EDIT_PLUCK_THRESHOLD:
       pluckThresholds[curKeyIndex] = r.getPosition();
+      leds.setPixelColor(curKeyIndex, editPluckThresholdColor);
       break;
     case EDIT_RELEASE_THRESHOLD:
       releaseThresholds[curKeyIndex] = r.getPosition();
+      leds.setPixelColor(curKeyIndex, editReleaseThresholdColor);
       break;
     case REGISTER_SELECT:
       jackRegister = (r.getPosition()) ? FRONT_REGISTER : BACK_REGISTER;
@@ -127,7 +132,8 @@ void rotate(Rotary& r) {
           break;
       }
 
-      leds.show();
       break;
   }
+
+  leds.show();
 }
