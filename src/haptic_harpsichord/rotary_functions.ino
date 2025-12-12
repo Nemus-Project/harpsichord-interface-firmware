@@ -102,9 +102,7 @@ void rotate(Rotary& r) {
   switch (rotaryMode) {
     case KEY_SELECT:
       curKeyIndex = r.getPosition();
-
       leds.setPixelColor(curKeyIndex, keySelectColor);
-
       break;
     case EDIT_SINGLE_THRESHOLD:
       singlePluckThresholds[curKeyIndex] = r.getPosition();

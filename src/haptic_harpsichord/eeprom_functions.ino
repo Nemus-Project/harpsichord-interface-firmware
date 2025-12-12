@@ -76,7 +76,7 @@ void readPluckFromEEPROM() {
     fram.writeEnable(true);
     fram.write(registerTypeAddress, (uint8_t*)(&jackRegister), sizeof(jackRegister));
   } else {
-    fram.read(registerTypeAddress,  (uint8_t*)(&jackRegister), sizeof(jackRegister));
+    fram.read(registerTypeAddress, (uint8_t*)(&jackRegister), sizeof(jackRegister));
   }
 }
 
@@ -86,13 +86,17 @@ void readPluckFromEEPROM() {
  * On `FRAM_WRITE_FAIL` of either tag or thresholds fails, the onboard RED LED will turn on
  */
 void writePluckToEEPROM() {
-  fram.writeEnable(true);
-
-  if (!fram.write(singleThresholdTagAddress, singleThresholdTag, 4))
-    digitalWrite(LEDR, LOW);
 
   fram.writeEnable(true);
   if (!fram.write(thresholdValueAddress, (uint8_t*)singlePluckThresholds, numSensors * 2))
+    digitalWrite(LEDR, LOW);
+
+  fram.writeEnable(true);
+  if (!fram.write(pluckValueAddress, (uint8_t*)pluckThresholds, numSensors * 2))
+    digitalWrite(LEDR, LOW);
+
+  fram.writeEnable(true);
+  if (!fram.write(releaseValueAddress, (uint8_t*)releaseThresholds, numSensors * 2))
     digitalWrite(LEDR, LOW);
 
   fram.writeEnable(false);
