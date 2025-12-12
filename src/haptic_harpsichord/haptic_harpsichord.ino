@@ -320,9 +320,9 @@ void singleThresholdLoop() {
 
     for (int i = 0; i < numSensors; i++) {
       if (currSensorReadings[i] < singlePluckThresholds[i] and prevSensorReadings[i] > singlePluckThresholds[i]) {
-        noteOff(0, index2note(i), 100);
-      } else if (currSensorReadings[i] > singlePluckThresholds[i] and prevSensorReadings[i] < singlePluckThresholds[i]) {
         noteOn(0, index2note(i), 100);
+      } else if (currSensorReadings[i] > singlePluckThresholds[i] and prevSensorReadings[i] < singlePluckThresholds[i]) {
+        noteOff(0, index2note(i), 100);
       }
     }
   }
@@ -335,9 +335,9 @@ void hysteresisLoop() {
 
     for (int i = 0; i < numSensors; i++) {
       if (currSensorReadings[i] < pluckThresholds[i] and prevSensorReadings[i] > pluckThresholds[i]) {
-        noteOff(0, index2note(i), 100);
-      } else if (currSensorReadings[i] > releaseThresholds[i] and prevSensorReadings[i] < releaseThresholds[i]) {
         noteOn(0, index2note(i), 100);
+      } else if (currSensorReadings[i] > releaseThresholds[i] and prevSensorReadings[i] < releaseThresholds[i]) {
+        noteOff(0, index2note(i), 100);
       }
     }
   }
