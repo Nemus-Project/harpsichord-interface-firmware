@@ -346,13 +346,13 @@ void printFramValues() {
       Serial.print(j);
       Serial.print(": ");
       Serial.print(singleThresholds[j]);
-      Serial.print(",");
+      Serial.print(", ");
     }
-    Serial.println(",");
+    Serial.println("");
   }
 
   Serial.println("");
-  Serial.println("------ Hystertic Pluck ------");
+  Serial.println("------ Hysteretic Pluck ------");
   for (int i = 0; i < 7; i++) {
     Serial.print("------ Board ");
     Serial.print(i);
@@ -361,13 +361,13 @@ void printFramValues() {
       Serial.print(j);
       Serial.print(": ");
       Serial.print(pluckThresholds[j]);
-      Serial.print(",");
+      Serial.print(", ");
     }
-    Serial.println(",");
+    Serial.println("");
   }
 
   Serial.println("");
-  Serial.println("------ Hystertic Release ------");
+  Serial.println("------ Hysteretic Release ------");
   for (int i = 0; i < 7; i++) {
     Serial.print("------ Board ");
     Serial.print(i);
@@ -376,9 +376,9 @@ void printFramValues() {
       Serial.print(j);
       Serial.print(": ");
       Serial.print(releaseThresholds[j]);
-      Serial.print(",");
+      Serial.print(", ");
     }
-    Serial.println(",");
+    Serial.println("");
   }
 
   Serial.println();
