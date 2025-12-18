@@ -62,7 +62,7 @@
 #include "error_codes.h"
 //-----------------------------------------------------------------------------
 const bool FRONT_REGSISTER = false;
-const bool ALWAYS_DEBUG  = false;
+const bool ALWAYS_DEBUG  = true;
 //-----------------------------------------------------------------------------
 // Enums
 enum JackState {
@@ -221,10 +221,10 @@ void keyboardLoop() {
   readAllSensors();
 
   for (int i = 0; i < numSensors; i++) {
-    if (currSensorReadings[i] < releaseThresholds[i] and prevSensorReadings[i] > releaseThresholds[i] and jackStates[i] != RELEASED) {
+    if (currSensorReadings[i] > releaseThresholds[i] and prevSensorReadings[i] < releaseThresholds[i] and jackStates[i] != RELEASED) {
       jackStates[i] = RELEASED;
       noteOff(0, index2note(i), 100);
-    } else if (currSensorReadings[i] > pluckThresholds[i] and prevSensorReadings[i] < pluckThresholds[i] and jackStates[i] != PLUCKED) {
+    } else if (currSensorReadings[i] < pluckThresholds[i] and prevSensorReadings[i] > pluckThresholds[i] and jackStates[i] != PLUCKED) {
       jackStates[i] = PLUCKED;
       noteOn(0, index2note(i), 100);
     }
