@@ -56,7 +56,7 @@ const uint16_t registerTypeTagAddress = releaseValueAddress + (numSensors * 2);
 ///
 const char registerTypeTag[4] = { 'R', 'E', 'G', 'I' };
 ///
-const uint16_t registerTypeAddress = releaseValueAddress + (numSensors * 2);
+const uint16_t registerTypeAddress = registerTypeTagAddress + 4;
 ///
 uint16_t defaultThreshold = 1000;
 ///
@@ -77,12 +77,14 @@ enum JackRegister {
 JackRegister jackRegister = FRONT_REGISTER;
 //-----------------------------------------------------------------------------
 void setup() {
+  Serial.begin(9600);
 
-  if (!fram.begin(addrSizeInBytes)) {
-    Serial.println("No SPI FRAM found ... check your connections\r\n");
-    halt();
-  }
+  // Save some power
+  digitalWrite(PIN_ENABLE_I2C_PULLUP, LOW);
+  digitalWrite(PIN_ENABLE_SENSORS_3V3, LOW);
+  // digitalWrite(LED_PWR, LOW);
 
+  /// init LEDs
   pinMode(LEDR, OUTPUT);
   pinMode(LEDG, OUTPUT);
   pinMode(LEDB, OUTPUT);
@@ -92,60 +94,34 @@ void setup() {
   digitalWrite(LEDG, HIGH);
   digitalWrite(LEDB, HIGH);
 
-  while(!readThresholdValues())
-  {
+  if (!fram.begin(addrSizeInBytes)) {
+    Serial.println("No SPI FRAM found ... check your connections\r\n");
+    halt();
+    // digitalWrite(LEDR, HIGH);
+    digitalWrite(LEDG, LOW);
+    digitalWrite(LEDB, LOW);
+  }
+
+  digitalWrite(LEDR, LOW);
+  digitalWrite(LEDG, LOW);
+  digitalWrite(LEDB, LOW);
+
+  delay(3000);
+
+  while (!readThresholdValues()) {
     editDataValues();
   }
-
-  
 }
+
 //-----------------------------------------------------------------------------
+
 void loop() {
-  for (int i = 0; i < 7; i++) {
-    Serial.print("------ Board ");
-    Serial.print(i);
-    Serial.println(" ------");
-    for (int j = 0; j < 7; j++) {
-      Serial.print(j);
-      Serial.print(": ");
-      Serial.print(singleThresholds[j]);
-      Serial.print(",");
-    }
-    Serial.println(",");
-  }
-
-  for (int i = 0; i < 7; i++) {
-    Serial.print("------ Board ");
-    Serial.print(i);
-    Serial.println(" ------");
-    for (int j = 0; j < 7; j++) {
-      Serial.print(j);
-      Serial.print(": ");
-      Serial.print(pluckThresholds[j]);
-      Serial.print(",");
-    }
-    Serial.println(",");
-  }
-
-  for (int i = 0; i < 7; i++) {
-    Serial.print("------ Board ");
-    Serial.print(i);
-    Serial.println(" ------");
-    for (int j = 0; j < 7; j++) {
-      Serial.print(j);
-      Serial.print(": ");
-      Serial.print(releaseThresholds[j]);
-      Serial.print(",");
-    }
-    Serial.println(",");
-  }
-
-  Serial.println();
-  Serial.println();
-
+  printFramValues();
   Serial.println("Input an option or power off the Arduino\r\n");
   editDataValues();
 }
+
+//-----------------------------------------------------------------------------
 
 void halt() {
   while (true) {
@@ -161,7 +137,7 @@ void halt() {
 
 //-----------------------------------------------------------------------------
 void printInputOptions() {
-  Serial.println("Enter on of the following options");
+  Serial.println("Enter one of the following options:");
   Serial.println("- s:  set single threshold");
   Serial.println("- p:  set hysteretic pluck threshold");
   Serial.println("- r:  set hysteretic release threshold");
@@ -173,6 +149,7 @@ void printInputOptions() {
 //-----------------------------------------------------------------------------
 
 void editDataValues() {
+
   printInputOptions();
 
   waitingForInput = true;
@@ -187,18 +164,23 @@ void editDataValues() {
         case 's':
         case 'S':
           setDefaultThreholdValue(0, 4095, singleThresholds);
+          // (const char tag[4], const uint16_t tagAddr, int8_t *thresholdValues, uint16_t thresholdValueAddr)
+          writeThresholdsToEEPROM(singleTag, singleThresholdTagAddress, (int8_t *)singleThresholds, thresholdValueAddress);
           break;
         case 'p':
         case 'P':
           setDefaultThreholdValue(0, 4095, pluckThresholds);
+          writeThresholdsToEEPROM(pluckTag, pluckThresholdTagAddress, (int8_t *)pluckThresholds, pluckValueAddress);
           break;
         case 'r':
         case 'R':
           setDefaultThreholdValue(0, 4095, releaseThresholds);
+          writeThresholdsToEEPROM(releaseTag, releaseThresholdTagAddress, (int8_t *)releaseThresholds, releaseValueAddress);
           break;
         case 'j':
         case 'J':
           setJackRegister();
+          break;
         default:
           Serial.print("Option ");
           Serial.print(option);
@@ -208,7 +190,9 @@ void editDataValues() {
     }
   }
 }
+
 //-----------------------------------------------------------------------------
+
 bool readThresholdValues() {
   uint32_t tagRead;
 
@@ -239,6 +223,7 @@ bool readThresholdValues() {
 
   if (tagRead != *((uint32_t *)releaseTag)) {
     allDataValid = false;
+    Serial.println("No hysteretic release data!");
   } else {
     fram.read(releaseValueAddress, (uint8_t *)releaseThresholds, numSensors * 2);
   }
@@ -271,12 +256,13 @@ void writeThresholdsToEEPROM(const char tag[4], const uint16_t tagAddr, int8_t *
   fram.writeEnable(false);
 }
 
+//-----------------------------------------------------------------------------
 
 void setDefaultThreholdValue(uint16_t min, uint16_t max, uint16_t *thresholdValues) {
-  Serial.println("Enter a value (");
-  Serial.println(min);
-  Serial.println("-");
-  Serial.println(max);
+  Serial.print("Enter a value (");
+  Serial.print(min);
+  Serial.print("-");
+  Serial.print(max);
   Serial.println(") to initialise memory:");
 
   waitingForInput = true;
@@ -285,12 +271,12 @@ void setDefaultThreholdValue(uint16_t min, uint16_t max, uint16_t *thresholdValu
     if (Serial.available()) {
       defaultThreshold = Serial.parseInt(SKIP_WHITESPACE);
       clearSerialInputBuffer();
+      Serial.print("Value Entered: ");
+      Serial.println(defaultThreshold);
       if (defaultThreshold <= max && defaultThreshold >= min) {
-        Serial.print("Value Entered: ");
-        Serial.println(defaultThreshold);
-        Serial.println("Enter a value (0-4095)");
-      } else {
         waitingForInput = false;
+      } else {
+        Serial.println("Enter a value (0-4095)");
       }
     }
   }
@@ -298,6 +284,8 @@ void setDefaultThreholdValue(uint16_t min, uint16_t max, uint16_t *thresholdValu
     thresholdValues[i] = defaultThreshold;
   }
 }
+
+//-----------------------------------------------------------------------------
 
 void setJackRegister() {
   Serial.println("Set the jack register. 1: front, 2: back");
@@ -343,4 +331,70 @@ void setJackRegister() {
 void clearSerialInputBuffer() {
   while (Serial.available())
     Serial.read();
+}
+
+//
+
+void printFramValues() {
+
+  Serial.println("------ Single Thesholds ------");
+  for (int i = 0; i < 7; i++) {
+    Serial.print("------ Board ");
+    Serial.print(i);
+    Serial.println(" ------");
+    for (int j = 0; j < 7; j++) {
+      Serial.print(j);
+      Serial.print(": ");
+      Serial.print(singleThresholds[j]);
+      Serial.print(",");
+    }
+    Serial.println(",");
+  }
+
+  Serial.println("");
+  Serial.println("------ Hystertic Pluck ------");
+  for (int i = 0; i < 7; i++) {
+    Serial.print("------ Board ");
+    Serial.print(i);
+    Serial.println(" ------");
+    for (int j = 0; j < 7; j++) {
+      Serial.print(j);
+      Serial.print(": ");
+      Serial.print(pluckThresholds[j]);
+      Serial.print(",");
+    }
+    Serial.println(",");
+  }
+
+  Serial.println("");
+  Serial.println("------ Hystertic Release ------");
+  for (int i = 0; i < 7; i++) {
+    Serial.print("------ Board ");
+    Serial.print(i);
+    Serial.println(" ------");
+    for (int j = 0; j < 7; j++) {
+      Serial.print(j);
+      Serial.print(": ");
+      Serial.print(releaseThresholds[j]);
+      Serial.print(",");
+    }
+    Serial.println(",");
+  }
+
+  Serial.println();
+  Serial.print("Register: ");
+
+  switch (jackRegister) {
+    case FRONT_REGISTER:
+      Serial.println("Front");
+      break;
+    case BACK_REGISTER:
+      Serial.println("Back");
+      break;
+    default:
+      Serial.println("Unknown");
+      break;
+  }
+
+  Serial.println();
 }
