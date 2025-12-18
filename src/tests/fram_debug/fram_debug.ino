@@ -94,23 +94,23 @@ void setup() {
   digitalWrite(LEDG, HIGH);
   digitalWrite(LEDB, HIGH);
 
+  delay(3000);  // wait for Serial
+
   if (!fram.begin(addrSizeInBytes)) {
     Serial.println("No SPI FRAM found ... check your connections\r\n");
+    digitalWrite(LEDR, LOW);
     halt();
-    // digitalWrite(LEDR, HIGH);
-    digitalWrite(LEDG, LOW);
-    digitalWrite(LEDB, LOW);
   }
 
   digitalWrite(LEDR, LOW);
-  digitalWrite(LEDG, LOW);
   digitalWrite(LEDB, LOW);
 
-  delay(3000);
 
   while (!readThresholdValues()) {
     editDataValues();
   }
+
+  digitalWrite(LEDR, HIGH);
 }
 
 //-----------------------------------------------------------------------------
@@ -164,7 +164,6 @@ void editDataValues() {
         case 's':
         case 'S':
           setDefaultThreholdValue(0, 4095, singleThresholds);
-          // (const char tag[4], const uint16_t tagAddr, int8_t *thresholdValues, uint16_t thresholdValueAddr)
           writeThresholdsToEEPROM(singleTag, singleThresholdTagAddress, (int8_t *)singleThresholds, thresholdValueAddress);
           break;
         case 'p':
