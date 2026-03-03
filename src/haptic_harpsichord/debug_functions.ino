@@ -64,15 +64,37 @@ void singleThresholdDebugLoop() {
         noteOff(0, index2note(i), 100);
       }
     }
+    // if (Serial.available() && Serial.read() == 'p')
+    //   shouldPrint = !shouldPrint;
 
-    printJackReading(curKeyIndex);
-    printJackThreshold(curKeyIndex);
-    Serial.println();
+    if (shouldPrint) {
+      printJackReading(curKeyIndex, 0, 4098);
+      printJackThreshold(curKeyIndex);
+      Serial.println();
+    }
   }
 }
 
 void hystereticDebugLoop() {
   while (executeDebugMode) {
+
+
+    // for (int i = 0; i < 6; i++) {
+
+    //   digitalWrite(muxPinA, (i >> 0) & 0x1);
+    //   digitalWrite(muxPinB, (i >> 1) & 0x1);
+    //   digitalWrite(muxPinC, (i >> 2) & 0x1);
+
+    //   Serial.print(i);
+    //   Serial.print(':');
+    //   Serial.print(analogRead(A0));
+    //   Serial.print(' ');
+    // }
+    // Serial.print("Min:");
+    // Serial.print(1100);
+    // Serial.print(' ');
+    // Serial.print("Max:");
+    // Serial.println(1300);
 
     readSensors();
     rotary.loop();
@@ -80,15 +102,20 @@ void hystereticDebugLoop() {
 
     for (int i = 0; i < numSensors; i++) {
       if (currSensorReadings[i] < pluckThresholds[i] and prevSensorReadings[i] > pluckThresholds[i]) {
-        noteOn(0, index2note(i), 100);
+    //     noteOn(0, index2note(i), 100);
       } else if (currSensorReadings[i] > releaseThresholds[i] and prevSensorReadings[i] < releaseThresholds[i]) {
-        noteOff(0, index2note(i), 100);
+    //     noteOff(0, index2note(i), 100);
       }
     }
 
-    printJackReading(curKeyIndex);
+    if (Serial.available() && Serial.read() == 'p')
+      shouldPrint = !shouldPrint;
+
+    if (shouldPrint) {
+    printJackReading(curKeyIndex, 1100, 1300);
     printJackThreshold(curKeyIndex);
     Serial.println();
+    }
   }
 }
 

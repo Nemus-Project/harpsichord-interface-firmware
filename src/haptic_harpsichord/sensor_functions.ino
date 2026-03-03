@@ -19,21 +19,21 @@
  */
 void readSensors() {
 
-  for (uint8_t i = 0; i < 7; i++) {
+  for (uint8_t i = 0; i < numMuxChannels; i++) {
     
     digitalWrite(muxPinA, (i >> 0) & 0x1);
     digitalWrite(muxPinB, (i >> 1) & 0x1);
     digitalWrite(muxPinC, (i >> 2) & 0x1);
 
-    delayMicroseconds(500);
+    // delayMicroseconds(500);
 
-    currSensorReadings[i + (0 * 7)] = analogRead(A0 + 0);
-    currSensorReadings[i + (1 * 7)] = analogRead(A0 + 1);
-    currSensorReadings[i + (2 * 7)] = analogRead(A0 + 2);
-    currSensorReadings[i + (3 * 7)] = analogRead(A0 + 3);
-    currSensorReadings[i + (4 * 7)] = analogRead(A0 + 4);
-    currSensorReadings[i + (5 * 7)] = analogRead(A0 + 5);
-    currSensorReadings[i + (6 * 7)] = analogRead(A0 + 6);
+    currSensorReadings[i + (0 * numMuxChannels)] = analogRead(A0 + 0);
+    currSensorReadings[i + (1 * numMuxChannels)] = analogRead(A0 + 1);
+    currSensorReadings[i + (2 * numMuxChannels)] = analogRead(A0 + 2);
+    currSensorReadings[i + (3 * numMuxChannels)] = analogRead(A0 + 3);
+    currSensorReadings[i + (4 * numMuxChannels)] = analogRead(A0 + 4);
+    currSensorReadings[i + (5 * numMuxChannels)] = analogRead(A0 + 5);
+    currSensorReadings[i + (6 * numMuxChannels)] = analogRead(A0 + 6);
   }
 
   // pointer swap

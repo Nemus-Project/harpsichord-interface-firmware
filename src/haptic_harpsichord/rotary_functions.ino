@@ -40,24 +40,32 @@ void click(Button2& btn) {
       rotary.setUpperBound(numSensors);
       rotary.setLowerBound(0);
       rotary.resetPosition(curKeyIndex, false);
+      leds.setPixelColor(curKeyIndex, keySelectColor);
+      currentLedColor = keySelectColor;
       break;
     case EDIT_SINGLE_THRESHOLD:
       rotary.setIncrement(10);
       rotary.setUpperBound(4096);
       rotary.setLowerBound(0);
       rotary.resetPosition(singlePluckThresholds[curKeyIndex], false);
+      leds.setPixelColor(curKeyIndex, editPluckThresholdColor);
+      currentLedColor  = editPluckThresholdColor;
       break;
     case EDIT_PLUCK_THRESHOLD:
       rotary.setIncrement(10);
       rotary.setUpperBound(4096);
       rotary.setLowerBound(0);
       rotary.resetPosition(pluckThresholds[curKeyIndex], false);
+      leds.setPixelColor(curKeyIndex, editPluckThresholdColor);
+      currentLedColor  = editPluckThresholdColor;
       break;
     case EDIT_RELEASE_THRESHOLD:
       rotary.setIncrement(10);
       rotary.setUpperBound(4096);
       rotary.setLowerBound(0);
       rotary.resetPosition(releaseThresholds[curKeyIndex], false);
+      leds.setPixelColor(curKeyIndex, editReleaseThresholdColor);
+      currentLedColor  = editReleaseThresholdColor;
       break;
     case REGISTER_SELECT:
       rotary.setIncrement(1);
@@ -66,6 +74,7 @@ void click(Button2& btn) {
       rotary.resetPosition(0, false);
       break;
   }
+  leds.show();
 }
 
 /**
@@ -84,7 +93,7 @@ void doubleclick(Button2& btn) {
   leds.show();
   delay(100);
   leds.fill(leds.Color(0, 0, 0), 0, numSensors);
-  leds.setPixelColor(curKeyIndex, 0, 0, 100);
+  leds.setPixelColor(curKeyIndex, currentLedColor);
   leds.show();
 }
 

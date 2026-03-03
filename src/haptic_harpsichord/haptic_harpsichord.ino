@@ -36,6 +36,7 @@
  *
  */
 //-----------------------------------------------------------------------------
+#define FIRMWARE_STRING "0.2.2"
 // Board specific libraries
 #ifdef ARDUINO_ARDUINO_NANO33BLE
 #include <PluggableUSBMIDI.h>
@@ -125,15 +126,15 @@ const size_t muxPinC = 8;
 //-----------------------------------------------------------------------------
 // Sensor variables
 ///
-uint16_t sensorReadingsA[numSensors];
-///
-uint16_t sensorReadingsB[numSensors];
-///
 uint16_t singlePluckThresholds[numSensors];
 ///
 uint16_t pluckThresholds[numSensors];
 ///
 uint16_t releaseThresholds[numSensors];
+///
+uint16_t sensorReadingsA[numSensors];
+///
+uint16_t sensorReadingsB[numSensors];
 ///
 uint16_t* prevSensorReadings = sensorReadingsB;
 ///
@@ -235,7 +236,7 @@ const uint16_t registerTypeTagAddress = releaseValueAddress + (numSensors * 2);
 ///
 const uint8_t registerTypeTag[4] = { 'R', 'E', 'G', 'I' };
 ///
-const uint16_t registerTypeAddress = releaseValueAddress + (numSensors * 2);
+const uint16_t registerTypeAddress = registerTypeTagAddress + 4;
 //-----------------------------------------------------------------------------
 // MIDI Variables
 /// MIDI Communication over USB Object, see the PluggableUSBMIDI library
@@ -243,11 +244,13 @@ USBMIDI MidiUSB;
 /// sensor index to note table for the front register
 byte frontRegisterNoteTable[numSensors] = { 94, 93, 92, 91, 90, 89, 88, 87, 86, 85, 84, 83, 82, 81, 80, 79, 78, 77, 76, 75, 74, 73, 72, 71, 70, 69, 68, 67, 66, 65, 64, 63, 62, 61, 60, 59, 58, 57, 56, 55, 54, 53, 52, 51, 50, 49, 48, 47, 46 };
 /// sensor index to note table for the back register
-byte backRegisterNoteTable[numSensors] = { 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94 };
+byte backRegisterNoteTable[numSensors]  = { 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94 };
 //-----------------------------------------------------------------------------
 // Misc
 /// Use when waiting for user input from the serial port or rotary encoder
 bool waitingForInput = false;
+/// boolean for printing a data stream to calibrate
+bool shouldPrint = false;
 //-----------------------------------------------------------------------------
 
 /**
@@ -289,8 +292,10 @@ void setup() {
   /// setup EEPROM
   if (!fram.begin())
     halt(FRAM_NOT_FOUND);
-
+  
+  delay(3000);
   readPluckFromEEPROM();
+  printFirmwareInfo();
 
   if (button.isPressed() or ALWAYS_DEBUG) {
     debugLoop();

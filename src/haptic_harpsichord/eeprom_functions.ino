@@ -70,12 +70,12 @@ void readPluckFromEEPROM() {
 
   if (tagRead != *((uint32_t*)registerTypeTag)) {
     fram.write(registerTypeTagAddress, registerTypeTag, 4);
-
+    
     setRegister();
 
     fram.writeEnable(true);
     fram.write(registerTypeAddress, (uint8_t*)(&jackRegister), sizeof(jackRegister));
-  } else {
+  } else {    
     fram.read(registerTypeAddress, (uint8_t*)(&jackRegister), sizeof(jackRegister));
   }
 }

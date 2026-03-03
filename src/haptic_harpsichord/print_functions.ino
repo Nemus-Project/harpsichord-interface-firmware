@@ -41,13 +41,13 @@
  *
  * @param index
  */
-void printJackReading(byte index) {
+void printJackReading(byte index, uint16_t min, uint16_t max) {
   Serial.print("m:");
-  Serial.print(750);
+  Serial.print(min);
   Serial.print(' ');
 
   Serial.print("M:");
-  Serial.print(1200);
+  Serial.print(max);
   // Serial.print(1024);
   Serial.print(' ');
 
@@ -88,4 +88,41 @@ void printJackThreshold(byte index) {
       Serial.print(releaseThresholds[index]);
       break;
   }
+}
+
+
+
+void printFirmwareInfo() {
+
+  Serial.print("Firmware Version: ");
+  Serial.println(FIRMWARE_STRING);
+
+  Serial.print("Threshold Type: ");
+  switch (thresholdType) {
+    case SINGLE_THRESHOLD:
+      Serial.println("Single");
+      break;
+    case HYSTERETIC:
+      Serial.println("Hysteretic");
+      break;
+  }
+
+  Serial.print("Jack Register: ");
+  switch (jackRegister) {
+    case FRONT_REGISTER:
+      Serial.println("Front");
+      break;
+    case BACK_REGISTER:
+      Serial.println("Back");
+      break;
+    default:
+      Serial.println("Unknown");
+      break;
+  }
+
+  Serial.print("Mode: ");
+  if (ALWAYS_DEBUG)
+    Serial.println("DEBUG");
+  else
+    Serial.println("Standard");
 }
