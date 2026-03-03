@@ -78,7 +78,6 @@ JackRegister jackRegister = FRONT_REGISTER;
 //-----------------------------------------------------------------------------
 void setup() {
   Serial.begin(9600);
-
   // Save some power
   digitalWrite(PIN_ENABLE_I2C_PULLUP, LOW);
   digitalWrite(PIN_ENABLE_SENSORS_3V3, LOW);
@@ -105,7 +104,6 @@ void setup() {
   digitalWrite(LEDR, LOW);
   digitalWrite(LEDB, LOW);
 
-
   while (!readThresholdValues()) {
     editDataValues();
   }
@@ -116,8 +114,8 @@ void setup() {
 //-----------------------------------------------------------------------------
 
 void loop() {
-  printFramValues();
-  Serial.println("Input an option or power off the Arduino\r\n");
+  // Serial.println("Input an option or power off the Arduino\r\n");
+  // printInputOptions();
   editDataValues();
 }
 
@@ -142,11 +140,20 @@ void printInputOptions() {
   Serial.println("- p:  set hysteretic pluck threshold");
   Serial.println("- r:  set hysteretic release threshold");
   Serial.println("- j:  set jack register threshold");
+  Serial.println("- a:  print all values");
+  Serial.println("- m:  memory dump");
   // Serial.println("- f:  set default threshold of 1000");
   // Serial.println("- e:  set custom threshold (0-4096)");
 }
 
 //-----------------------------------------------------------------------------
+
+void waitForInput() {
+  Serial.println("Send any string to continue");
+  while (!Serial.available()) {}
+  while (Serial.available())
+    Serial.read();
+}
 
 void editDataValues() {
 
@@ -165,25 +172,39 @@ void editDataValues() {
         case 'S':
           setDefaultThreholdValue(0, 4095, singleThresholds);
           writeThresholdsToEEPROM(singleTag, singleThresholdTagAddress, (int8_t *)singleThresholds, thresholdValueAddress);
+          waitingForInput = false;
           break;
         case 'p':
         case 'P':
           setDefaultThreholdValue(0, 4095, pluckThresholds);
           writeThresholdsToEEPROM(pluckTag, pluckThresholdTagAddress, (int8_t *)pluckThresholds, pluckValueAddress);
+          waitingForInput = false;
           break;
         case 'r':
         case 'R':
           setDefaultThreholdValue(0, 4095, releaseThresholds);
           writeThresholdsToEEPROM(releaseTag, releaseThresholdTagAddress, (int8_t *)releaseThresholds, releaseValueAddress);
+          waitingForInput = false;
           break;
         case 'j':
         case 'J':
           setJackRegister();
+          waitingForInput = false;
+          break;
+        case 'a':
+        case 'A':
+          printFramValues();
+          waitingForInput = false;
+          break;
+        case 'm':
+        case 'M':
+          printASCIIMemoryDump();
+          waitingForInput = false;
           break;
         default:
-          Serial.print("Option ");
+          Serial.print("Option '");
           Serial.print(option);
-          Serial.println(" is invalid");
+          Serial.println("' is an invalid option");
           break;
       }
     }
@@ -332,7 +353,7 @@ void clearSerialInputBuffer() {
     Serial.read();
 }
 
-//
+//-----------------------------------------------------------------------------
 
 void printFramValues() {
 
@@ -395,5 +416,42 @@ void printFramValues() {
       break;
   }
 
+  Serial.println();
+}
+
+//-----------------------------------------------------------------------------
+
+void printMemoryDump() {
+  uint8_t value;
+  for (uint16_t a = 0; a < 8192; a++) {
+    value = fram.read8(a);
+    if ((a % 32) == 0) {
+      Serial.print("\n 0x");
+      Serial.print(a, HEX);
+      Serial.print(": ");
+    }
+    Serial.print("0x");
+    if (value < 0x1)
+      Serial.print('0');
+    Serial.print(value, HEX);
+    Serial.print(" ");
+  }
+  Serial.println();
+}
+
+
+void printASCIIMemoryDump() {
+  char value;
+  for (uint16_t a = 0; a < 8192; a++) {
+    value = fram.read8(a);
+    if ((a % 64) == 0) {
+      Serial.println();
+    }
+    if (value > 32 && value < 127) {
+      Serial.print(value);
+    } else {
+      Serial.print(".");
+    }
+  }
   Serial.println();
 }
