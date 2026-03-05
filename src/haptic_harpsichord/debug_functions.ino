@@ -83,26 +83,14 @@ void hystereticDebugLoop() {
     button.loop();
 
     for (int i = 0; i < numSensors; i++) {
-      if (currSensorReadings[i] >= releaseThresholds[i] and prevSensorReadings[i] <= releaseThresholds[i]) {
-        if (jackStates[i] == PLUCK) {
-          noteOff(0, index2note(i, -4), 100);
-          jackStates[i] = RELEASED;
-        }
-      } else if (currSensorReadings[i] < pluckThresholds[i] and prevSensorReadings[i] >= pluckThresholds[i]) {
-        if (jackStates[i] == RELEASED) {
-          noteOn(0, index2note(i, -4), 100);
-          jackStates[i] = PLUCK;
-        }
+      if (currSensorReadings[i] > releaseThresholds[i] and prevSensorReadings[i] <= releaseThresholds[i] and jackStates[i] == PLUCK) {
+        noteOff(0, index2note(i, -4), 100);
+        jackStates[i] = RELEASED;
+      } else if (currSensorReadings[i] < pluckThresholds[i] and prevSensorReadings[i] >= pluckThresholds[i] and jackStates[i] == RELEASED) {
+        noteOn(0, index2note(i, -4), 100);
+        jackStates[i] = PLUCK;
       }
     }
-
-    // for (int i = 0; i < numSensors; i++) {
-    //   if (currSensorReadings[i] < pluckThresholds[i] and prevSensorReadings[i] > pluckThresholds[i]) {
-    //     noteOn(0, index2note(i), 100);
-    //   } else if (currSensorReadings[i] > releaseThresholds[i] and prevSensorReadings[i] < releaseThresholds[i]) {
-    //     noteOff(0, index2note(i), 100);
-    //   }
-    // }
 
     if (Serial.available() && Serial.read() == 'p')
       shouldPrint = !shouldPrint;
