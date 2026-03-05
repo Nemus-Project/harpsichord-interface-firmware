@@ -32,6 +32,25 @@ Standard MIDI protocol is used. Changes in behaviour should be directed at the `
 
 The system currently uses a 5V 1A power supply.
 
+## Calibration
+
+Thresholds can be calibrated using the the Rotary encoder port. A 5-pin rotary encoder can be attached / dettached at any time.
+
+First open the Serial Plotter in the Arduino IDE. Send a 'p' character over serial and the sensor and threshold data for the current key will begin streaming.
+
+Press down on the dial to cycle through the 3 modes: Key select, Pluck Threshold and Release Threshold.
+
+| Mode              | LED Colour |
+| ----------------- | ---------- |
+| Key Select        | Blue       |
+| Pluck Threshold   | Green      |
+| Release Threshold | Purple     |
+
+
+The dial can then be used to adjust which key is being calibrated. Thresholds can be monitored through the data streamed over the Serial connection.
+
+Double-click the dial to save all current thresholds to memory. All LEDs will briefly flash blue to confirm data has been saved.
+
 ## Troubleshoooting
 
 If there are any problems with individual components, check the `tests/` directory for a set siagnostic tests.
