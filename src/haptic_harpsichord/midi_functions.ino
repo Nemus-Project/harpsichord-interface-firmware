@@ -66,9 +66,10 @@ void aftertouch(byte channel, byte key, byte pressure) {
  */
 byte index2note(byte i, int8_t transpose) {
   switch (jackRegister) {
-    case FRONT_REGISTER:
-      return frontRegisterNoteTable[i] + transpose;
     case BACK_REGISTER:
       return backRegisterNoteTable[i]  + transpose;
+    case FRONT_REGISTER:
+    default:
+      return frontRegisterNoteTable[i] + transpose;
   }
 }
