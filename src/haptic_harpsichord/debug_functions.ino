@@ -84,10 +84,10 @@ void hystereticDebugLoop() {
 
     for (int i = 0; i < numSensors; i++) {
       if (currSensorReadings[i] > releaseThresholds[i] and prevSensorReadings[i] <= releaseThresholds[i] and jackStates[i] == PLUCK) {
-        noteOff(0, index2note(i, -4), 100);
+        noteOff(0, index2note(i), 100);
         jackStates[i] = RELEASED;
       } else if (currSensorReadings[i] < pluckThresholds[i] and prevSensorReadings[i] >= pluckThresholds[i] and jackStates[i] == RELEASED) {
-        noteOn(0, index2note(i, -4), 100);
+        noteOn(0, index2note(i), 100);
         jackStates[i] = PLUCK;
       }
     }
