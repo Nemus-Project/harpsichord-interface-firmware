@@ -65,11 +65,16 @@ void aftertouch(byte channel, byte key, byte pressure) {
  * @return byte MIDI note value
  */
 byte index2note(byte i, int8_t transpose) {
+
+  byte midiNoteNumber;
+  
   switch (jackRegister) {
     case BACK_REGISTER:
-      return backRegisterNoteTable[i]  + transpose;
+      midiNoteNumber =  backRegisterNoteTable[i]  + transpose;
     case FRONT_REGISTER:
     default:
-      return frontRegisterNoteTable[i] + transpose;
+      midiNoteNumber =  frontRegisterNoteTable[i] + transpose;
   }
+
+  return midiNoteNumber;
 }
