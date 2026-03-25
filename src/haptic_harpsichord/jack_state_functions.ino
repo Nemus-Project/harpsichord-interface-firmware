@@ -8,7 +8,7 @@
 
 
 /**
- * @brief Update th Jack state array given current sensor values
+ * @brief Update the Jack state array given current sensor values
  * 
  */
 void updateJackStates() {
