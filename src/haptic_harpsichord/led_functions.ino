@@ -14,7 +14,7 @@
  */
 void setLedsToJackDisplacement() {
   for (int i = 0; i < numSensors; i++) {
-    uint8_t c = map(currSensorReadings[i], 0, 1024, 255, 0);
+    uint8_t c = map(currSensorReadings[i], 0, 4096, 255, 0);
 
     if (currSensorReadings[i] > singlePluckThresholds[i]) {
       leds.setPixelColor(i, c, 0, 0);
