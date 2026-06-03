@@ -92,8 +92,11 @@ void hystereticDebugLoop() {
       }
     }
 
-    if (Serial.available() && Serial.read() == 'p')
-      shouldPrint = !shouldPrint;
+   if (Serial.available()) {
+     char c = Serial.read();
+     if (c == 'p') shouldPrint = !shouldPrint;
+   else if (c == 'c') autoCalibrate();
+  }
 
     if (shouldPrint) {
       printJackReading(curKeyIndex, 1100, 1300);

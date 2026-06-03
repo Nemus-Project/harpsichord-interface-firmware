@@ -95,6 +95,11 @@ enum ThresholdType {
 #define numMuxChannels 7
 #define numPcbs 7
 
+// All 49 sensor positions correspond to real keys on this keyboard, spanning
+// low C to high C. The main loops therefore iterate over every sensor.
+#define FIRST_ACTIVE_SENSOR 0
+#define LAST_ACTIVE_SENSOR  (numSensors - 1)
+
 #if (numMuxChannels * numPcbs != numSensors)
 #error "Check product of mux channels and number of PCBs is equal to total number of sensors"
 #endif
@@ -143,6 +148,17 @@ uint16_t* currSensorReadings = sensorReadingsA;
 uint16_t* tempPointer;
 ///
 ThresholdType thresholdType = HYSTERETIC;
+//-----------------------------------------------------------------------------
+// Moving average filter
+/// Window length — must be a power of 2 so division becomes a bit shift
+#define AVG_SIZE 8
+#define AVG_SHIFT 3   // log2(AVG_SIZE) — update if you change AVG_SIZE
+/// Per-sensor ring buffer of raw samples
+uint16_t sensorHistory[numSensors][AVG_SIZE];
+/// Per-sensor running sum (wide enough for 16-bit samples × AVG_SIZE entries)
+uint32_t sensorSums[numSensors];
+/// Circular index into sensorHistory
+uint8_t windex = 0;
 //-----------------------------------------------------------------------------
 // Jack States
 ///
@@ -241,10 +257,36 @@ const uint16_t registerTypeAddress = registerTypeTagAddress + 4;
 // MIDI Variables
 /// MIDI Communication over USB Object, see the PluggableUSBMIDI library
 USBMIDI MidiUSB;
+//
+// Sensor-to-MIDI-note mapping.
+//
+// All 49 sensors map to real keys, one per chromatic semitone, spanning
+// high C down to low C: index 0 = C6 (MIDI 84) down to index 48 = C2 (MIDI 36).
+// Equivalently, MIDI note = 84 - index. (49 keys = 4 octaves, C to C.)
+// Sensor index runs from the top key to the bottom key on this unit.
+//
+// To move the whole keyboard up/down an octave, add/subtract 12 from every
+// entry below, or pass a non-zero `transpose` to index2note().
+//
+// Both tables hold the same values — this instrument has a single register,
+// so front and back produce the same pitches regardless of which is selected.
+//
 /// sensor index to note table for the front register
-byte frontRegisterNoteTable[numSensors] = {84, 83, 82, 81, 80, 79, 78, 77, 76, 75, 74, 73, 72, 71, 70, 69, 68, 67, 66, 65, 64, 63, 62, 61, 60, 59, 58, 57, 56, 55, 54, 53, 52, 51, 50, 49, 48, 47, 46, 45, 44, 43, 42, 41, 40};
+byte frontRegisterNoteTable[numSensors] = {
+  84, 83, 82, 81, 80, 79, 78, 77, 76, 75, 74, 73,    // C6  B5  Bb5 A5  G#5 G5  F#5 F5  E5  D#5 D5  C#5
+  72, 71, 70, 69, 68, 67, 66, 65, 64, 63, 62, 61,    // C5  B4  Bb4 A4  G#4 G4  F#4 F4  E4  D#4 D4  C#4
+  60, 59, 58, 57, 56, 55, 54, 53, 52, 51, 50, 49,    // C4  B3  Bb3 A3  G#3 G3  F#3 F3  E3  D#3 D3  C#3
+  48, 47, 46, 45, 44, 43, 42, 41, 40, 39, 38, 37,    // C3  B2  Bb2 A2  G#2 G2  F#2 F2  E2  D#2 D2  C#2
+  36                                                  // C2
+};
 /// sensor index to note table for the back register
-byte backRegisterNoteTable[numSensors] = {40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84};
+byte backRegisterNoteTable[numSensors] = {
+  84, 83, 82, 81, 80, 79, 78, 77, 76, 75, 74, 73,    // C6  B5  Bb5 A5  G#5 G5  F#5 F5  E5  D#5 D5  C#5
+  72, 71, 70, 69, 68, 67, 66, 65, 64, 63, 62, 61,    // C5  B4  Bb4 A4  G#4 G4  F#4 F4  E4  D#4 D4  C#4
+  60, 59, 58, 57, 56, 55, 54, 53, 52, 51, 50, 49,    // C4  B3  Bb3 A3  G#3 G3  F#3 F3  E3  D#3 D3  C#3
+  48, 47, 46, 45, 44, 43, 42, 41, 40, 39, 38, 37,    // C3  B2  Bb2 A2  G#2 G2  F#2 F2  E2  D#2 D2  C#2
+  36                                                  // C2
+};
 //-----------------------------------------------------------------------------
 // Misc
 /// Use when waiting for user input from the serial port or rotary encoder
@@ -299,6 +341,17 @@ void setup() {
 
   delay(3000);
   readPluckFromEEPROM();
+
+  // Force BACK_REGISTER regardless of what FRAM has stored. The front/back
+  // tables are identical anyway, but this keeps the semantics explicit.
+  jackRegister = BACK_REGISTER;
+
+  // Prime the moving-average ring buffer so the first few scans aren't
+  // biased by the zero-initialised history.
+  for (uint8_t i = 0; i < AVG_SIZE; i++) {
+    readSensors();
+  }
+
   printFirmwareInfo();
 
   if (button.isPressed() or ALWAYS_DEBUG) {
@@ -327,7 +380,7 @@ void singleThresholdLoop() {
 
     readSensors();
 
-    for (int i = 0; i < numSensors; i++) {
+    for (int i = FIRST_ACTIVE_SENSOR; i <= LAST_ACTIVE_SENSOR; i++) {
       if (currSensorReadings[i] < singlePluckThresholds[i] and prevSensorReadings[i] > singlePluckThresholds[i]) {
         noteOn(0, index2note(i), 100);
       } else if (currSensorReadings[i] > singlePluckThresholds[i] and prevSensorReadings[i] < singlePluckThresholds[i]) {
@@ -342,7 +395,7 @@ void hysteresisLoop() {
 
     readSensors();
 
-    for (int i = 0; i < numSensors; i++) {
+    for (int i = FIRST_ACTIVE_SENSOR; i <= LAST_ACTIVE_SENSOR; i++) {
       if (currSensorReadings[i] < pluckThresholds[i] and prevSensorReadings[i] > pluckThresholds[i]) {
         noteOn(0, index2note(i), 100);
       } else if (currSensorReadings[i] > releaseThresholds[i] and prevSensorReadings[i] < releaseThresholds[i]) {

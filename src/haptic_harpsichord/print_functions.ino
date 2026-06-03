@@ -54,7 +54,7 @@ void printJackReading(byte index, uint16_t min, uint16_t max) {
   Serial.print("K");
   Serial.print(index2key(index));
   Serial.print(":");
-  Serial.print(readSensor(index));
+  Serial.print(currSensorReadings[index]);
   Serial.print(' ');
 }
 

@@ -55,10 +55,13 @@ void aftertouch(byte channel, byte key, byte pressure) {
 
 /**
  * @brief Translate between key index and note.
- * 
- * Uses the frontRegisterNoteTable and backRegisterNoteTable
- * lookup tables for dictating the sensor-index-to-midi-note
- * mapping
+ *
+ * Uses the frontRegisterNoteTable and backRegisterNoteTable lookup tables
+ * for dictating the sensor-index-to-midi-note mapping.
+ *
+ * Note: `break` statements are REQUIRED on each case. Without them the
+ * switch falls through, the BACK_REGISTER branch gets overwritten by the
+ * FRONT_REGISTER branch, and the register setting has no effect.
  *
  * @param i sensor index
  * @param transpose number of MIDI notes by which to transpose the notes
@@ -67,13 +70,15 @@ void aftertouch(byte channel, byte key, byte pressure) {
 byte index2note(byte i, int8_t transpose) {
 
   byte midiNoteNumber;
-  
+
   switch (jackRegister) {
     case BACK_REGISTER:
-      midiNoteNumber =  backRegisterNoteTable[i]  + transpose;
+      midiNoteNumber = backRegisterNoteTable[i] + transpose;
+      break;
     case FRONT_REGISTER:
     default:
-      midiNoteNumber =  frontRegisterNoteTable[i] + transpose;
+      midiNoteNumber = frontRegisterNoteTable[i] + transpose;
+      break;
   }
 
   return midiNoteNumber;
