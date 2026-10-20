@@ -50,6 +50,12 @@ void debugLoop() {
   exitDebug();
 }
 
+/**
+ * @brief Debug loop for single-threshold detection
+ *
+ * @deprecated DO NOT USE. Kept for reference only, see ThresholdType.
+ * Ignores serial commands: no auto-calibration and no register change.
+ */
 void singleThresholdDebugLoop() {
   while (executeDebugMode) {
 
@@ -82,6 +88,8 @@ void hystereticDebugLoop() {
      char c = Serial.read();
      if (c == 'p') shouldPrint = !shouldPrint;
    else if (c == 'c') autoCalibrate();
+   else if (c == 'f') changeJackRegister(FRONT_REGISTER);
+   else if (c == 'b') changeJackRegister(BACK_REGISTER);
   }
 
     if (shouldPrint) {

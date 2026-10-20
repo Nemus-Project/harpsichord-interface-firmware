@@ -150,6 +150,7 @@ void printFirmwareInfo() {
   switch (thresholdType) {
     case SINGLE_THRESHOLD:
       Serial.println("Single");
+      Serial.println("WARNING: single threshold mode is DEPRECATED and should not be used. Set thresholdType = HYSTERETIC.");
       break;
     case HYSTERETIC:
       Serial.println("Hysteretic");

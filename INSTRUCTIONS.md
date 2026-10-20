@@ -26,9 +26,17 @@ The keyboard has two modes:
 - Open the Arduino IDE's **Serial Monitor** or **Serial Plotter** at **115200** baud.
 - Commands are single characters, typed into the IDE's message box and sent.
 
-**Key numbers.** Serial messages refer to keys by number. The lowest key (E2)
-is **key 47**, the highest (C6) is **key 3**. Positions 1, 2, 48 and 49 are
-unused sensor positions with no key above them.
+**Jack register.** The sensor rail reads the keys in opposite order under the
+front and the back register, so the firmware has two mirrored note mappings.
+The register is saved in FRAM and can be changed from serial (section 6).
+
+**Key numbers.** Serial messages refer to sensor positions by number (49 down
+to 1). Positions 1, 2, 48 and 49 are unused, with no key above them.
+
+| Register | Key 47 | Key 3 |
+|---|---|---|
+| **Back** | E2 (lowest) | C6 (highest) |
+| **Front** | C6 (highest) | E2 (lowest) |
 
 ---
 
@@ -50,10 +58,10 @@ with default thresholds (1600). It then waits on serial with:
 ```
 Set the jack register. 1: front, 2: back
 ```
-Send `1` or `2`. Startup does not continue until you do. Only serial works here,
-not the encoder. The firmware always uses the back register anyway, so either
-answer is fine. After that, **calibrate** (section 5): the default thresholds
-will not play correctly.
+Send `1` (front) or `2` (back) to match where the sensor rail is mounted.
+Startup does not continue until you do. Only serial works here, not the
+encoder. The choice is saved, and can be changed later (section 6). After that,
+**calibrate** (section 5): the default thresholds will not play correctly.
 
 ---
 
@@ -99,7 +107,7 @@ Release must be **above** pluck. Pressing a key makes its reading go **down**.
 
 | Encoder mode | Strip LED colour | Turning does |
 |---|---|---|
-| **Key select** | blue | Selects a key, one per step. Starts on the lowest key (key 47, E2). |
+| **Key select** | blue | Selects a key, one per step. Starts on key 47 (E2 on the back register, C6 on the front). |
 | **Pluck threshold** | green | Changes the selected key's pluck threshold in steps of 10. |
 | **Release threshold** | purple | Changes the selected key's release threshold in steps of 10. |
 
@@ -187,6 +195,13 @@ A healthy key looks like this:
 |---|---|
 | `p` | Toggle the plotter stream on/off. |
 | `c` | Run auto-calibration (section 5). |
+| `f` | Switch to the **front** register and save it to FRAM. |
+| `b` | Switch to the **back** register and save it to FRAM. |
+
+`f` / `b` print the active register (`Jack Register: Front` / `Back`). Any note
+sounding at that moment is released first, so nothing hangs. Thresholds belong
+to sensor positions, so they are kept. If the rail is physically moved to the
+other register, recalibrate, because the jacks sit differently.
 
 Other characters are ignored. In Play mode, serial input is ignored entirely.
 
@@ -232,7 +247,7 @@ Serial Monitor at **9600** baud. Commands:
 | `s` | set **all** single thresholds to one value |
 | `p` | set **all** pluck thresholds to one value |
 | `r` | set **all** release thresholds to one value |
-| `j` | set jack register (1 front, 2 back) |
+| `j` | set jack register (1 front, 2 back); prefer `f` / `b` in calibration mode |
 
 Caveats:
 - This sketch still assumes the old 12-bit scale. It only accepts values 0–4095,
@@ -249,7 +264,9 @@ To check calibration values, prefer the Serial Plotter in calibration mode.
 These are set in the firmware source (`src/haptic_harpsichord/haptic_harpsichord.ino`)
 and need a re-flash:
 
-- Threshold type: hysteretic (default) or single threshold (`thresholdType`).
+- Threshold type (`thresholdType`): must stay **hysteretic**. Single threshold
+  is deprecated and must not be used; the boot summary prints a warning if it is
+  selected.
 - Note mapping / range (`frontRegisterNoteTable`, `backRegisterNoteTable`).
 - MIDI channel and velocity.
 - Mode-switch hold time (`MODE_SWITCH_HOLD_MS`, 2 s).

@@ -24,6 +24,7 @@ void readPluckFromEEPROM() {
   fram.read(singleThresholdTagAddress, (uint8_t*)&tagRead, 4);
 
   if (tagRead != *((uint32_t*)singleThresholdTag)) {
+    fram.writeEnable(true);  // the FRAM clears write enable after every write
     fram.write(singleThresholdTagAddress, singleThresholdTag, 4);
 
     for (int i = 0; i < numSensors; i++)
@@ -39,6 +40,7 @@ void readPluckFromEEPROM() {
   fram.read(pluckThresholdTagAddress, (uint8_t*)&tagRead, 4);
 
   if (tagRead != *((uint32_t*)pluckTag)) {
+    fram.writeEnable(true);  // the FRAM clears write enable after every write
     fram.write(pluckThresholdTagAddress, pluckTag, 4);
 
     for (int i = 0; i < numSensors; i++)
@@ -54,6 +56,7 @@ void readPluckFromEEPROM() {
   fram.read(releaseThresholdTagAddress, (uint8_t*)&tagRead, 4);
 
   if (tagRead != *((uint32_t*)releaseTag)) {
+    fram.writeEnable(true);  // the FRAM clears write enable after every write
     fram.write(releaseThresholdTagAddress, releaseTag, 4);
 
     for (int i = 0; i < numSensors; i++)
@@ -69,15 +72,13 @@ void readPluckFromEEPROM() {
   fram.read(registerTypeTagAddress, (uint8_t*)&tagRead, 4);
 
   if (tagRead != *((uint32_t*)registerTypeTag)) {
-    fram.write(registerTypeTagAddress, registerTypeTag, 4);
-    
     setRegister();
-
-    fram.writeEnable(true);
-    fram.write(registerTypeAddress, (uint8_t*)(&jackRegister), sizeof(jackRegister));
+    writeRegisterToEEPROM();
   } else {    
     fram.read(registerTypeAddress, (uint8_t*)(&jackRegister), sizeof(jackRegister));
   }
+
+  fram.writeEnable(false);
 }
 
 /**
@@ -103,3 +104,22 @@ void writePluckToEEPROM() {
 }
 
 // -----------------------------------------------------------------------------
+
+/**
+ * @brief Write the jack register and its tag to memory
+ *
+ * The FRAM clears its write-enable latch after every write, so write enable
+ * is set before each one. On failure the onboard RED LED turns on.
+ */
+void writeRegisterToEEPROM() {
+
+  fram.writeEnable(true);
+  if (!fram.write(registerTypeTagAddress, registerTypeTag, 4))
+    digitalWrite(LEDR, LOW);
+
+  fram.writeEnable(true);
+  if (!fram.write(registerTypeAddress, (uint8_t*)(&jackRegister), sizeof(jackRegister)))
+    digitalWrite(LEDR, LOW);
+
+  fram.writeEnable(false);
+}

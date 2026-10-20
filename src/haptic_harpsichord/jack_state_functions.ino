@@ -60,6 +60,8 @@ void checkJackStates() {
 /**
  * @brief Generate MIDI from single threshold crossings
  *
+ * @deprecated DO NOT USE. Kept for reference only, see ThresholdType.
+ *
  * Shared by `singleThresholdLoop()` and `singleThresholdDebugLoop()` so both
  * play identically. Call once after each `readSensors()`.
  */

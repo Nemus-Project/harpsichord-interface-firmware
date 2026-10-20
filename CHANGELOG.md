@@ -77,6 +77,8 @@ failed. It now runs only on pushes to `main`.
 
 ## 4. 13-bit sensor scale, and a plot window that follows the selected key
 
+*Commit `e643b2e` — "fix bit depth issues"*
+
 **Problem.** See [Background: 12-bit vs 13-bit readings](#background-12-bit-vs-13-bit-readings).
 Several values in the code still assumed the old 12-bit range.
 
@@ -125,6 +127,58 @@ converted. Recalibrate once:
 3. Play every key.
 4. Hold the button for 2 s again to leave calibration and save to FRAM (or
    double-click to save without leaving).
+
+## 5. Front / back register with mirrored note mapping
+
+**Background.** The sensor rail reads the keys in opposite order depending on
+which jack register it sits under. Matthew's original design (`086ae04`, on
+`main`) had two mirrored tables: front descending, back ascending. It never
+worked, though: `index2note()` had no `break`s, so the front table was always
+used. On `MayConcerts`, `76a77f7` added the `break`s, but made both tables
+identical (ascending) and forced `BACK_REGISTER` in `setup()`.
+
+**Change.**
+- `frontRegisterNoteTable` is the mirror of the back table again:
+  index 2 = C6 … index 46 = E2. The back table is unchanged: index 2 = E2 …
+  index 46 = C6, which is confirmed correct for the back register on this
+  keyboard. Both keep the orphan positions 0–1 and 47–48. These are symmetric,
+  so the active range 2–46 is the same for both registers.
+- `setup()` no longer forces `BACK_REGISTER`. The register stored in FRAM is used.
+- New serial commands in (hysteretic) debug mode: `f` = front, `b` = back
+  (`changeJackRegister()` in `haptic_harpsichord.ino`). Notes currently
+  sounding are released with the old mapping first, so none are left hanging.
+  The new register is saved to FRAM immediately.
+- New `writeRegisterToEEPROM()` in `eeprom_functions.ino`. It sets FRAM
+  write-enable before **each** write: the chip clears write-enable after every
+  write, and `fram.write()` does not set it. The first-boot register path used
+  to write the `REGI` tag without write enable, so on a fresh chip the tag was
+  not saved and the prompt came back on every boot. That path now uses this
+  function.
+
+## 6. FRAM threshold tags saved correctly on a fresh chip
+
+**Problem.** The same missing write-enable (see section 5) affected the
+threshold tags (`DATA`, `PLCK`, `RLSE`) in `readPluckFromEEPROM()`. Each tag was
+written before `fram.writeEnable(true)`, so on a fresh FRAM chip the tags were
+never saved. On every boot, the firmware then found no tag and overwrote the
+saved thresholds with the defaults: calibration was lost at each power cycle.
+Chips whose tags had already been written, for example by `fram_debug`, were
+not affected.
+
+**Change.** `fram.writeEnable(true)` is now called before each tag write, and
+`readPluckFromEEPROM()` ends with `fram.writeEnable(false)`.
+
+## 7. Single-threshold mode marked deprecated
+
+Single-threshold detection (`SINGLE_THRESHOLD`) must not be used. It was not
+removed, but it is now clearly marked:
+- `@warning` / `@deprecated` Doxygen comments on the `ThresholdType` enum,
+  `singleThresholdLoop()`, `singleThresholdDebugLoop()` and
+  `processSingleThreshold()`, which also appear in the generated docs'
+  "Deprecated" list.
+- A comment on `thresholdType` saying it must stay `HYSTERETIC`.
+- A serial warning in the boot summary if `thresholdType` is ever set to
+  `SINGLE_THRESHOLD`.
 
 ---
 
