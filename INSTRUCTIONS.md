@@ -197,7 +197,7 @@ again to switch back. It starts in the position view.
 |---|---|
 | `V<n>` | velocity of key *n*, in reading units per second |
 | `Z` | zero line |
-| `m` / `M` | fixed scale at −/+ 20,000 units per second |
+| `m` / `M` | fixed scale at −/+ 15,000 units per second |
 
 - **Below zero:** the key is going **down**.
 - **Above zero:** the key is coming **up**.
@@ -205,8 +205,11 @@ again to switch back. It starts in the position view.
 
 The scale is fixed, so noise at rest appears at its real size compared to a key
 press. A faster movement extends the plot beyond the scale. The range is set by
-`VELOCITY_PLOT_RANGE` in the code. The velocity is the average slope over the
-last 8 scans, so it lags the movement slightly.
+`VELOCITY_PLOT_RANGE` in the code. The velocity is the slope of a straight line
+fitted through the last 5 samples, so it lags the movement slightly (about 2
+scans). The number of samples is set by `VELOCITY_WINDOW` in the code (2–32):
+fewer samples react faster but are noisier, more samples are smoother but react
+later. It does not affect the readings or note detection.
 
 ### Serial commands (calibration mode)
 

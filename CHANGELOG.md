@@ -272,6 +272,111 @@ cancel and both reduce to `(x_n − x_(n−8))`.)
   noise at rest is shown at its real size relative to key presses. Faster
   movements still extend the plot. (±100,000 was tried first and was too large.)
 
+*Commit `a211a6b` — "implement velocity computation printout"*
+
+## 11. Velocity: least-squares slope
+
+**Problem.** The velocity in section 10, `(x_n − x_(n−8)) / (t_n − t_(n−8))`,
+depends on only two raw samples, the newest and the one from 8 scans ago. The 7
+samples in between are ignored, so their information is wasted and the noise of
+the two end samples passes straight through.
+
+**Change.** `readSensors()` now fits a straight line through the same 9 raw
+samples (the 8 in the window plus the one dropped this scan), against their
+measured scan times, and uses its slope:
+
+```
+v = Σ w_i · x_i,   w_i = (t_i − t̄) / Σ (t_j − t̄)²
+```
+
+- **Weights per scan:** the weights depend only on the scan times, so they are
+  computed once per scan and shared by all 49 sensors. Per sensor, the cost is 9
+  multiply-adds in float (hardware FPU), a few tens of µs per scan in total.
+- **Real timestamps:** the fit uses the actual `scanTimes`, so it stays exact
+  when scan intervals are irregular (debug mode).
+- **Float precision:** times are taken relative to the current scan ("µs ago"),
+  and samples relative to the newest one (the weights sum to zero), so the
+  floats stay small and precise. The weights also convert to 13-bit reading
+  units per second.
+- **Same centre and lag** as before: the middle of the window, about 4 scans.
+  Same validity rule: 0 until the window holds 8 real scans.
+
+**Verified** with a simulation of the same algorithm:
+- a linear ramp with random scan intervals (0.8–3 ms) is reproduced exactly,
+  within 0.01% (rounding of the integer samples)
+- at rest with Gaussian noise, the standard deviation is 26% lower than the
+  two-sample difference (790 vs 1072 units/s in the test)
+
+(An earlier estimate of "25–30%" had been computed against a 7-interval
+difference. Over only the 8 samples in the buffer, the gain would be about 13%.
+Including the dropped 9th sample is what gives the 26%.)
+
+## 12. Shorter velocity window, plot range ±15,000
+
+**Change.**
+- **Configurable fit length:** new `VELOCITY_WINDOW` in `haptic_harpsichord.ino`,
+  the number of raw samples in the least-squares fit (2 to `AVG_SIZE + 1`, checked
+  at compile time). Default changed from 9 to **5**. The fit uses the newest
+  samples from the history buffer (slots `windex`, `windex − 1`, …). It only
+  includes the dropped sample when the window is 9. It is independent of the
+  8-sample moving average used for readings and thresholds, which is unchanged.
+- **Plot range:** `VELOCITY_PLOT_RANGE` reduced from 20,000 to 15,000.
+
+**Trade-off** (simulation of the same algorithm, 1 ms scans, Gaussian noise at
+rest; a linear ramp with irregular scan times is reproduced within 0.1% for all
+lengths):
+
+| `VELOCITY_WINDOW` | Centred (scans back) | Noise std at rest | vs. 9 |
+|---|---|---|---|
+| 9 (before) | 4.0 | 784 | 1.0× |
+| 8 | 3.5 | 935 | 1.2× |
+| 7 | 3.0 | 1142 | 1.5× |
+| 6 | 2.5 | 1445 | 1.8× |
+| **5 (default)** | **2.0** | **1907** | **2.4×** |
+| 4 | 1.5 | 2699 | 3.4× |
+| 3 | 1.0 | 4283 | 5.5× |
+
+Noise grows roughly with the 1.5 power of the shortening, because a shorter fit
+has both fewer samples and a shorter time span.
+
+## 13. Separate velocity buffer: window up to 32 samples
+
+**Problem.** The velocity fit read its samples from the moving-average buffer
+(`sensorHistory`), which only holds 8 samples (plus the one dropped each scan).
+`VELOCITY_WINDOW` therefore could not exceed 9. Making the moving average
+longer would also have smoothed the readings, adding delay to note detection.
+
+**Change.**
+- **Own buffer:** the velocity has its own ring buffer, `velocityHistory[49][VELOCITY_WINDOW]`,
+  with its own timestamps (`velocityTimes`), index (`vindex`, any length, not
+  only powers of 2) and fill counter (`velocityCount`). `readSensors()` stores
+  each raw sample in both buffers.
+- **Range:** `VELOCITY_WINDOW` can be 2 to `VELOCITY_WINDOW_MAX` (32), checked
+  at compile time. The default stays at 5.
+- **Readings unchanged:** the moving average, readings, thresholds and note
+  detection are completely unaffected by the window length.
+- `scanTimes` and `scanCount` (section 10) were replaced by the new buffer.
+  `scanDtMicros` stays, and `windowMicros` now means the time spanned by the
+  velocity fit.
+- **Validity:** velocity is 0 until the buffer has been filled once
+  (`VELOCITY_WINDOW` scans).
+- **Memory:** 49 × `VELOCITY_WINDOW` × 2 bytes plus 4 bytes per timestamp
+  (5 → 510 bytes, 32 → about 3.3 KB of the 256 KB RAM).
+- **Per scan:** `VELOCITY_WINDOW` multiply-adds per sensor.
+
+**Verified** with a simulation of the same algorithm (1 ms scans). A linear ramp
+with irregular scan times is reproduced within 0.04% for every size. Sizes 5 and
+9 give exactly the same results as the previous implementation:
+
+| `VELOCITY_WINDOW` | Centred (scans back) | Noise std at rest |
+|---|---|---|
+| **5 (default)** | 2.0 | 1907 |
+| 9 | 4.0 | 784 |
+| 12 | 5.5 | 511 |
+| 16 | 7.5 | 329 |
+| 24 | 11.5 | 178 |
+| 32 | 15.5 | 115 |
+
 ---
 
 ## Background: 12-bit vs 13-bit readings

@@ -178,21 +178,38 @@ uint8_t windex = 0;
 // Sensor velocity (updated every scan by readSensors())
 /// Rate of change of each reading, in reading units (13-bit scale) per second.
 /// Negative = reading falling (key going down), positive = rising.
-/// It is the average slope over the moving-average window: (newest raw sample
-/// - raw sample AVG_SIZE scans ago) / time between those two scans.
+/// It is the least-squares slope of a line fitted through the newest
+/// VELOCITY_WINDOW raw samples against their scan times (see readSensors()).
 float sensorVelocity[numSensors];
-/// micros() timestamp of each scan in the window, indexed like sensorHistory
-unsigned long scanTimes[AVG_SIZE];
+/// Number of raw samples in the velocity fit, 2 to VELOCITY_WINDOW_MAX. The
+/// velocity has its own history buffer, so this is independent of the reading
+/// moving average (AVG_SIZE) and of note detection. Centred
+/// (VELOCITY_WINDOW - 1) / 2 scans back: shorter = less lag but more noise,
+/// longer = more lag but less noise (noise scales roughly with
+/// VELOCITY_WINDOW^-1.5). Memory: numSensors x VELOCITY_WINDOW x 2 bytes.
+#define VELOCITY_WINDOW 12
+/// Upper limit for VELOCITY_WINDOW (keeps memory and per-scan work bounded)
+#define VELOCITY_WINDOW_MAX 32
+#if (VELOCITY_WINDOW < 2) || (VELOCITY_WINDOW > VELOCITY_WINDOW_MAX)
+#error "VELOCITY_WINDOW must be between 2 and VELOCITY_WINDOW_MAX"
+#endif
+/// Per-sensor ring buffer of raw samples for the velocity fit
+uint16_t velocityHistory[numSensors][VELOCITY_WINDOW];
+/// micros() timestamp of each scan in velocityHistory, same indexing
+unsigned long velocityTimes[VELOCITY_WINDOW];
+/// Circular index into velocityHistory / velocityTimes (next slot to write)
+uint8_t vindex = 0;
+/// Number of scans stored, saturating at VELOCITY_WINDOW: velocity is valid
+/// once the buffer is full
+uint8_t velocityCount = 0;
 /// Measured time between the last two scans, in microseconds (diagnostic)
 unsigned long scanDtMicros = 0;
-/// Measured time spanned by the window (AVG_SIZE scans), in microseconds
+/// Measured time spanned by the velocity fit (oldest to newest sample), in
+/// microseconds (diagnostic)
 unsigned long windowMicros = 0;
-/// Number of scans done, saturating at AVG_SIZE: velocity is valid once the
-/// window is full
-uint8_t scanCount = 0;
 /// Serial Plotter velocity view: fixed plot range ±VELOCITY_PLOT_RANGE
 /// (reading units per second)
-#define VELOCITY_PLOT_RANGE 20000
+#define VELOCITY_PLOT_RANGE 15000
 //-----------------------------------------------------------------------------
 // Jack States
 ///
