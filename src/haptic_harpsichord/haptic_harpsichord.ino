@@ -176,17 +176,23 @@ uint32_t sensorSums[numSensors];
 uint8_t windex = 0;
 //-----------------------------------------------------------------------------
 // Sensor velocity (updated every scan by readSensors())
-/// Rate of change of each filtered reading, in reading units (13-bit scale)
-/// per second. Negative = reading falling (key going down), positive = rising.
-/// Because readings are a moving average, this is the average slope over the
-/// last AVG_SIZE scans.
+/// Rate of change of each reading, in reading units (13-bit scale) per second.
+/// Negative = reading falling (key going down), positive = rising.
+/// It is the average slope over the moving-average window: (newest raw sample
+/// - raw sample AVG_SIZE scans ago) / time between those two scans.
 float sensorVelocity[numSensors];
-/// micros() timestamp of the previous scan
-unsigned long lastScanMicros = 0;
-/// Measured time between the last two scans, in microseconds
+/// micros() timestamp of each scan in the window, indexed like sensorHistory
+unsigned long scanTimes[AVG_SIZE];
+/// Measured time between the last two scans, in microseconds (diagnostic)
 unsigned long scanDtMicros = 0;
-/// False until the first scan has recorded lastScanMicros
-bool haveLastScan = false;
+/// Measured time spanned by the window (AVG_SIZE scans), in microseconds
+unsigned long windowMicros = 0;
+/// Number of scans done, saturating at AVG_SIZE: velocity is valid once the
+/// window is full
+uint8_t scanCount = 0;
+/// Serial Plotter velocity view: fixed plot range ±VELOCITY_PLOT_RANGE
+/// (reading units per second)
+#define VELOCITY_PLOT_RANGE 20000
 //-----------------------------------------------------------------------------
 // Jack States
 ///

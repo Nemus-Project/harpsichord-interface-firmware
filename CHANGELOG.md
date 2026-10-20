@@ -235,6 +235,43 @@ used for MIDI yet.
   thousands of units/s) and readings (a window of a few hundred to a few
   thousand units) cannot share one axis.
 
+*Commit `3e4e5f0` — "initial velocity commit". Section 10 below supersedes the
+time step, arithmetic and guards details above.*
+
+## 10. Velocity: window-based timing, fixed plot range
+
+**Problem.** The velocity in section 9 was very noisy in debug mode. The
+difference of two consecutive moving averages, `curr − prev`, is really
+`(x_n − x_(n−8)) / 4`, a change over the whole **8-scan window**. But it was
+divided by the time of the **last scan only**. In debug mode, serial printing
+makes individual scans irregular, so every slow or fast scan produced a velocity
+spike even with the key at rest. The plotter's auto-scaling then zoomed in on
+that noise, which made it look even larger.
+
+(Averaging instantaneous velocities instead of differencing the averages
+would not help: the two are mathematically identical, because the middle terms
+cancel and both reduce to `(x_n − x_(n−8))`.)
+
+**Change.**
+- **Window timing:** each scan's `micros()` timestamp is kept in `scanTimes[]`,
+  a ring buffer indexed like `sensorHistory`. Velocity is now
+  `(newest raw − raw from 8 scans ago) / (time between those two scans)`, so the
+  time matches the change it is divided by. Irregular scans no longer cause
+  spikes. Cost: 32 bytes.
+- **Raw samples:** the difference is taken from the raw samples (the one added
+  to and the one dropped from the window), converted to the 13-bit scale
+  (× `AVG_SIZE / 2^(AVG_SHIFT−1)` = × 2). This avoids the rounding of the
+  `>> (AVG_SHIFT − 1)` shift.
+- **Validity:** velocity is 0 until the window holds `AVG_SIZE` real scans
+  (`scanCount`). `setup()` already primes 8 scans, so it is valid from the
+  start of operation.
+- `scanDtMicros` (last scan interval) and the new `windowMicros` (window span)
+  stay available as diagnostics. `lastScanMicros` / `haveLastScan` were removed.
+- **Fixed plot range:** the velocity view prints constant `m` / `M` lines at
+  ± `VELOCITY_PLOT_RANGE` (20,000 units/s, in `haptic_harpsichord.ino`), so
+  noise at rest is shown at its real size relative to key presses. Faster
+  movements still extend the plot. (±100,000 was tried first and was too large.)
+
 ---
 
 ## Background: 12-bit vs 13-bit readings

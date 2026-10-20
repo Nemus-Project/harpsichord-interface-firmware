@@ -197,12 +197,15 @@ again to switch back. It starts in the position view.
 |---|---|
 | `V<n>` | velocity of key *n*, in reading units per second |
 | `Z` | zero line |
+| `m` / `M` | fixed scale at −/+ 20,000 units per second |
 
 - **Below zero:** the key is going **down**.
 - **Above zero:** the key is coming **up**.
 - **At rest:** the trace sits near zero, with small noise.
 
-The plotter scales this view automatically. The velocity is smoothed over the
+The scale is fixed, so noise at rest appears at its real size compared to a key
+press. A faster movement extends the plot beyond the scale. The range is set by
+`VELOCITY_PLOT_RANGE` in the code. The velocity is the average slope over the
 last 8 scans, so it lags the movement slightly.
 
 ### Serial commands (calibration mode)

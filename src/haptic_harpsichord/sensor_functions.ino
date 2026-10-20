@@ -21,12 +21,29 @@
  * `sensorHistory`, `sensorSums`, and `windex`. Window length is `AVG_SIZE`
  * (must be a power of 2 so division becomes a right shift by `AVG_SHIFT`).
  *
- * Also updates `sensorVelocity` for every sensor, using the measured time
- * since the previous scan (`scanDtMicros`).
+ * Also updates `sensorVelocity` for every sensor: the slope over the window,
+ * (newest raw sample - raw sample AVG_SIZE scans ago) divided by the measured
+ * time between those two scans (`windowMicros`).
  */
 void readSensors() {
 
-  unsigned long scanStartMicros = micros();
+  // Timing: measured, not a fixed per-mode value, since scan time varies with
+  // mode, serial printing and MIDI traffic. scanTimes[windex] still holds the
+  // time of the scan AVG_SIZE scans ago, matching sensorHistory[][windex].
+  // Unsigned subtraction stays correct when micros() wraps (~71.6 minutes).
+  unsigned long now = micros();
+  scanDtMicros = now - scanTimes[(windex - 1) & (AVG_SIZE - 1)];
+  windowMicros = now - scanTimes[windex];
+  scanTimes[windex] = now;
+
+  // Velocity is valid once the window holds AVG_SIZE real scans. Raw deltas
+  // are converted to the 13-bit reading scale (readings = raw average x 2)
+  // and to units per second with one division per scan; float avoids the
+  // overflow of (delta * 1000000) in 32-bit integers.
+  bool velocityValid = (scanCount >= AVG_SIZE) and (windowMicros > 0);
+  float velocityScale = 0.0f;
+  if (velocityValid)
+    velocityScale = ((float)AVG_SIZE / (1 << (AVG_SHIFT - 1))) * 1000000.0f / windowMicros;
 
   // Swap first: old 'curr' becomes 'prev', then we overwrite 'curr' with fresh data.
   tempPointer = prevSensorReadings;
@@ -44,9 +61,10 @@ void readSensors() {
     for (uint8_t adc = 0; adc < numPcbs; adc++) {
       uint8_t sensorIdx = i + (adc * numMuxChannels);
       uint16_t raw = analogRead(A0 + adc);
+      uint16_t oldest = sensorHistory[sensorIdx][windex];
 
       // Ring-buffer moving average: drop oldest, add newest
-      sensorSums[sensorIdx] -= sensorHistory[sensorIdx][windex];
+      sensorSums[sensorIdx] -= oldest;
       sensorHistory[sensorIdx][windex] = raw;
       sensorSums[sensorIdx] += raw;
 
@@ -54,29 +72,15 @@ void readSensors() {
       // bits in sensorSums. Shifting by AVG_SHIFT-1 (not AVG_SHIFT) keeps
       // one of those bits, so currSensorReadings is 13-bit instead of 12.
       currSensorReadings[sensorIdx] = sensorSums[sensorIdx] >> (AVG_SHIFT - 1);
+
+      // Slope over the window, from raw samples (no rounding from the shift)
+      sensorVelocity[sensorIdx] = velocityValid ? (float)((int32_t)raw - (int32_t)oldest) * velocityScale : 0.0f;
     }
   }
 
   windex = (windex + 1) & (AVG_SIZE - 1);  // wrap (cheap because AVG_SIZE is pow2)
-
-  // Velocity: measured time step, not a fixed per-mode value, since scan time
-  // varies with mode, serial printing and MIDI traffic. Unsigned subtraction
-  // stays correct when micros() wraps around (every ~71.6 minutes).
-  if (haveLastScan)
-    scanDtMicros = scanStartMicros - lastScanMicros;
-  lastScanMicros = scanStartMicros;
-
-  if (haveLastScan and scanDtMicros > 0) {
-    // One division per scan; float avoids the overflow of
-    // (delta * 1000000) in 32-bit integers
-    float perSecond = 1000000.0f / scanDtMicros;
-    for (uint8_t i = 0; i < numSensors; i++)
-      sensorVelocity[i] = (float)((int32_t)currSensorReadings[i] - (int32_t)prevSensorReadings[i]) * perSecond;
-  } else {
-    for (uint8_t i = 0; i < numSensors; i++)
-      sensorVelocity[i] = 0.0f;
-  }
-  haveLastScan = true;
+  if (scanCount < AVG_SIZE)
+    scanCount++;
 }
 
 //-----------------------------------------------------------------------------
