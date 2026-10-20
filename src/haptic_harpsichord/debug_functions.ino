@@ -99,9 +99,17 @@ void hystereticDebugLoop() {
  * Turn off LEDs and if any changes have been made they are written to NV RAM
  */
 void exitDebug() {
-  digitalWrite(LEDB, LOW);
-  digitalWrite(LEDB, LOW);
+  digitalWrite(LEDB, HIGH);  // onboard RGB LED is active low: HIGH turns it off
   writePluckToEEPROM();
 
+  // Return the encoder to key select so re-entering debug mode starts clean
+  rotaryMode = KEY_SELECT;
+  rotary.setIncrement(INCREMENT);
+  rotary.setUpperBound(MAX_POS);
+  rotary.setLowerBound(MIN_POS);
+  rotary.resetPosition(curKeyIndex, false);
+  currentLedColor = keySelectColor;
+
   leds.clear();
+  leds.show();
 }

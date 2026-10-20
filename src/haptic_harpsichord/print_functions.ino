@@ -121,7 +121,7 @@ void printFirmwareInfo() {
   }
 
   Serial.print("Mode: ");
-  if (ALWAYS_DEBUG)
+  if (executeDebugMode)
     Serial.println("DEBUG");
   else
     Serial.println("Standard");

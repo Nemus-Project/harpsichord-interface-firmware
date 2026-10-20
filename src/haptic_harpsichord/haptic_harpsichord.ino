@@ -57,7 +57,7 @@
 // Local Headers
 #include "error_codes.h"
 //-----------------------------------------------------------------------------
-#define ALWAYS_DEBUG true
+#define ALWAYS_DEBUG false
 //-----------------------------------------------------------------------------
 // Enums
 ///
@@ -216,6 +216,8 @@ Rotary rotary = Rotary(ROTARY_PINA, ROTARY_PINB, CLICKS_PER_STEP, MIN_POS, MAX_P
 Button2 button = Button2(ROTARY_PINC);
 ///
 RotaryMode rotaryMode = KEY_SELECT;
+/// How long the encoder button must be held to toggle play / calibration mode
+const unsigned int MODE_SWITCH_HOLD_MS = 2000;
 //-----------------------------------------------------------------------------
 // EEPROM Variables
 ///
@@ -335,6 +337,8 @@ void setup() {
   rotary.setChangedHandler(rotate);
   button.setDoubleClickHandler(doubleclick);
   button.setClickHandler(click);
+  button.setLongClickTime(MODE_SWITCH_HOLD_MS);
+  button.setLongClickDetectedHandler(longClickDetected);
 
   /// setup EEPROM
   if (!fram.begin())
@@ -353,18 +357,36 @@ void setup() {
     readSensors();
   }
 
-  printFirmwareInfo();
+  // Hold the encoder button during boot to start in debug (calibration) mode.
+  // isPressedRaw() reads the pin now; isPressed() only reports the state
+  // captured when the global `button` was constructed at power-on.
+  if (button.isPressedRaw() or ALWAYS_DEBUG) {
+    executeDebugMode = true;
 
-  if (button.isPressed() or ALWAYS_DEBUG) {
-    debugLoop();
+    // Wait for release, then resync Button2's internal state. Otherwise the
+    // boot press is seen as a long press and immediately exits debug mode.
+    while (button.isPressedRaw())
+      delay(10);
+    delay(50);
+    button.begin(ROTARY_PINC);
   }
+
+  printFirmwareInfo();
 }
 
 /**
  * @brief Main firmware loop
  * Listen to sensor values and generate MIDI one those thresholds have been crossed
+ *
+ * Long-pressing the encoder button toggles `executeDebugMode`, which makes the
+ * current play or debug loop return so the other one is entered here.
  */
 void loop() {
+  if (executeDebugMode) {
+    debugLoop();
+    return;
+  }
+
   switch (thresholdType) {
     case SINGLE_THRESHOLD:
       singleThresholdLoop();
@@ -376,16 +398,17 @@ void loop() {
 }
 
 void singleThresholdLoop() {
-
-  while (true) {
+  while (!executeDebugMode) {
     readSensors();
+    button.loop();
     processSingleThreshold();
   }
 }
 
 void hysteresisLoop() {
-  while (true) {
+  while (!executeDebugMode) {
     readSensors();
+    button.loop();
     processHysteretic();
   }
 }

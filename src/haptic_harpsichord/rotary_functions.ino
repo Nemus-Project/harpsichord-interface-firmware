@@ -17,6 +17,10 @@
  */
 void click(Button2& btn) {
 
+  // Calibration controls are only active in debug mode
+  if (!executeDebugMode)
+    return;
+
   // Set next mode
   switch (rotaryMode) {
     case KEY_SELECT:
@@ -86,7 +90,10 @@ void click(Button2& btn) {
  */
 void doubleclick(Button2& btn) {
 
-  // executeDebugMode = false;
+  // Calibration controls are only active in debug mode
+  if (!executeDebugMode)
+    return;
+
   // save to EEPROM
   writePluckToEEPROM();
   leds.fill(leds.Color(0, 0, 50), 0, numSensors);
@@ -143,4 +150,17 @@ void rotate(Rotary& r) {
   }
 
   leds.show();
+}
+
+/**
+ * @brief Long Click Callback
+ *
+ * Toggles between play mode and debug (calibration) mode. Fires as soon as the
+ * button has been held for `MODE_SWITCH_HOLD_MS`; the running loop then returns
+ * and `loop()` enters the other mode. Leaving debug mode saves thresholds.
+ *
+ * @param btn reference to a Button2 library button object, which represents the momentary switch on the rotary encoder.
+ */
+void longClickDetected(Button2& btn) {
+  executeDebugMode = !executeDebugMode;
 }
