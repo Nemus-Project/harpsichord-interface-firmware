@@ -181,6 +181,11 @@ uint8_t windex = 0;
 /// It is the least-squares slope of a line fitted through the newest
 /// VELOCITY_WINDOW raw samples against their scan times (see readSensors()).
 float sensorVelocity[numSensors];
+/// Lowest (most negative = fastest downward) velocity of each key since its
+/// last Note Off. Reset to 0 at Note Off, so between notes it tracks the noise
+/// floor and during a press it captures the peak at the pluck. Updated by
+/// processHysteretic(); shown as `L<key>` in the debug velocity plot.
+float minVelocitySinceRelease[numSensors];
 /// Number of raw samples in the velocity fit, 2 to VELOCITY_WINDOW_MAX. The
 /// velocity has its own history buffer, so this is independent of the reading
 /// moving average (AVG_SIZE) and of note detection. Centred

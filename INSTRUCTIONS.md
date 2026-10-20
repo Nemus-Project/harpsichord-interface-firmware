@@ -196,12 +196,27 @@ again to switch back. It starts in the position view.
 | Line | Meaning |
 |---|---|
 | `V<n>` | velocity of key *n*, in reading units per second |
+| `L<n>` | lowest velocity of key *n* since its last Note Off |
 | `Z` | zero line |
 | `m` / `M` | fixed scale at −/+ 15,000 units per second |
 
 - **Below zero:** the key is going **down**.
 - **Above zero:** the key is coming **up**.
 - **At rest:** the trace sits near zero, with small noise.
+
+**Pluck peak vs. noise (`L`).** `L` is a running minimum: it only ever steps
+down, and resets to 0 at each Note Off. To check whether the pluck can be told
+apart from noise:
+
+1. Release the key (Note Off): `L` resets to 0.
+2. Leave it at rest for a moment: `L` settles at the **noise floor**, the lowest
+   value the noise reaches.
+3. Press the key: at the pluck, `L` steps down to the **pluck peak**.
+4. Release: `L` resets for the next try.
+
+The larger the gap between the noise floor and the pluck peak, the more reliably
+the peak can be detected. Try soft and slow presses too, since they give the
+smallest peaks.
 
 The scale is fixed, so noise at rest appears at its real size compared to a key
 press. A faster movement extends the plot beyond the scale. The range is set by

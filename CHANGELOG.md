@@ -377,6 +377,29 @@ with irregular scan times is reproduced within 0.04% for every size. Sizes 5 and
 | 24 | 11.5 | 178 |
 | 32 | 15.5 | 115 |
 
+*Sections 11–13: commit `045f220` — "implement velocity smoothing + own velocity
+buffer"*
+
+## 14. Lowest velocity since Note Off, for pluck-peak analysis
+
+**Purpose.** To find out whether the velocity peak when the jack plucks the
+string stands out from noise clearly enough to be used for MIDI.
+
+**Change.**
+- New `minVelocitySinceRelease[numSensors]` in `haptic_harpsichord.ino`: for each
+  key, the lowest (most negative, i.e. fastest downward) velocity since its last
+  Note Off.
+- Updated in `processHysteretic()` (`jack_state_functions.ino`) on every scan, for
+  the active keys. It is reset to 0 at Note Off. So between notes it tracks the
+  noise floor, and during a press it captures the pluck peak. This is a
+  comparison per key per scan, so it also runs in play mode at negligible cost.
+- The debug velocity view shows it as `L<key>`, next to `V<key>`. It is shown as a
+  plotter line rather than as text messages, which would break the Serial
+  Plotter.
+
+**Not reset** by a register change (`f` / `b`), which releases sounding notes
+without going through `processHysteretic()`. The next normal Note Off resets it.
+
 ---
 
 ## Background: 12-bit vs 13-bit readings
