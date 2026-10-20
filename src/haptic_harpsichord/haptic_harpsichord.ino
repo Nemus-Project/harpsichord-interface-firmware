@@ -462,6 +462,11 @@ constexpr byte key2index(byte k) {
  * 
  * Waits for user input via the serial console or the rotary encoder
  *
+ * @deprecated Not called any more. It blocked boot until a serial answer
+ * arrived, and the encoder click could not confirm. A fresh FRAM now defaults
+ * to BACK_REGISTER (see readPluckFromEEPROM()), and the register is changed
+ * with `f` / `b` in debug mode (changeJackRegister()).
+ *
  * @see JackRegister
  */
 void setRegister() {

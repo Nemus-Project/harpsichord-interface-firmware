@@ -54,13 +54,12 @@ to 1). Positions 1, 2, 48 and 49 are unused, with no key above them.
 4. It starts in **Play** mode, unless the encoder button was held (see 3.1).
 
 **First start with an empty or new FRAM chip.** The firmware fills the memory
-with default thresholds (1600). It then waits on serial with:
+with default thresholds (1600) and selects the **back** register, printing:
 ```
-Set the jack register. 1: front, 2: back
+No jack register stored, using Back. Send f / b in debug mode to change.
 ```
-Send `1` (front) or `2` (back) to match where the sensor rail is mounted.
-Startup does not continue until you do. Only serial works here, not the
-encoder. The choice is saved, and can be changed later (section 6). After that,
+Startup continues without waiting for input. If the sensor rail is under the
+front register, switch with `f` in calibration mode (section 6). Then
 **calibrate** (section 5): the default thresholds will not play correctly.
 
 ---

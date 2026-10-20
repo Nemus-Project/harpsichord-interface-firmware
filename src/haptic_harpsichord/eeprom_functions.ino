@@ -72,7 +72,10 @@ void readPluckFromEEPROM() {
   fram.read(registerTypeTagAddress, (uint8_t*)&tagRead, 4);
 
   if (tagRead != *((uint32_t*)registerTypeTag)) {
-    setRegister();
+    // No register stored (fresh FRAM): default to the back register without
+    // blocking boot. Change it later with `f` / `b` in debug mode.
+    jackRegister = BACK_REGISTER;
+    Serial.println("No jack register stored, using Back. Send f / b in debug mode to change.");
     writeRegisterToEEPROM();
   } else {    
     fram.read(registerTypeAddress, (uint8_t*)(&jackRegister), sizeof(jackRegister));

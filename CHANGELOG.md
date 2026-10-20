@@ -180,6 +180,24 @@ removed, but it is now clearly marked:
 - A serial warning in the boot summary if `thresholdType` is ever set to
   `SINGLE_THRESHOLD`.
 
+*Sections 5–7: commit `48fdabf` — "add double register, fix two FRAM bugs,
+deprecated single threshold"*
+
+## 8. No blocking register prompt on a fresh FRAM chip
+
+**Problem.** With no register stored in FRAM, `setup()` stopped in
+`setRegister()` and waited forever for `1` / `2` over serial. Without a
+computer attached, the keyboard never started and gave no visible reason. The
+encoder could change the choice, but a click could not confirm it: the wait
+loop never called `button.loop()`, and `click()` ignores clicks outside debug
+mode.
+
+**Change.** `readPluckFromEEPROM()` now defaults to `BACK_REGISTER`, prints
+`No jack register stored, using Back. Send f / b in debug mode to change.`,
+saves it to FRAM and continues booting. `setRegister()` is no longer called.
+It is kept in the code, marked `@deprecated`, together with the
+`REGISTER_SELECT` encoder mode that only it used.
+
 ---
 
 ## Background: 12-bit vs 13-bit readings
