@@ -40,9 +40,9 @@ void click(Button2& btn) {
   // New mode setup
   switch (rotaryMode) {
     case KEY_SELECT:
-      rotary.setIncrement(1);
-      rotary.setUpperBound(numSensors);
-      rotary.setLowerBound(0);
+      rotary.setIncrement(INCREMENT);
+      rotary.setUpperBound(MAX_POS);  // bounds are inclusive: MAX_POS = numSensors - 1
+      rotary.setLowerBound(MIN_POS);
       rotary.resetPosition(curKeyIndex, false);
       leds.setPixelColor(curKeyIndex, keySelectColor);
       currentLedColor = keySelectColor;

@@ -1,6 +1,10 @@
 name: Doxygen Documentation
 
-on: push
+# Only main may deploy to the github-pages environment; pushes to other
+# branches would be rejected by its protection rules.
+on:
+  push:
+    branches: [main]
 
 # Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
 permissions:
