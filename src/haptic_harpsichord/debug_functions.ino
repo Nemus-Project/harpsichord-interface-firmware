@@ -62,7 +62,7 @@ void singleThresholdDebugLoop() {
     //   shouldPrint = !shouldPrint;
 
     if (shouldPrint) {
-      printJackReading(curKeyIndex, 0, 4098);
+      printJackReadingAroundThresholds(curKeyIndex);
       printJackThreshold(curKeyIndex);
       Serial.println();
     }
@@ -85,7 +85,7 @@ void hystereticDebugLoop() {
   }
 
     if (shouldPrint) {
-      printJackReading(curKeyIndex, 1100, 1300);
+      printJackReadingAroundThresholds(curKeyIndex);
       printJackThreshold(curKeyIndex);
       Serial.println();
     }

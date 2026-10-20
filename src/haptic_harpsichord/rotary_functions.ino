@@ -49,7 +49,7 @@ void click(Button2& btn) {
       break;
     case EDIT_SINGLE_THRESHOLD:
       rotary.setIncrement(10);
-      rotary.setUpperBound(4096);
+      rotary.setUpperBound(SENSOR_READING_MAX);
       rotary.setLowerBound(0);
       rotary.resetPosition(singlePluckThresholds[curKeyIndex], false);
       leds.setPixelColor(curKeyIndex, editPluckThresholdColor);
@@ -57,7 +57,7 @@ void click(Button2& btn) {
       break;
     case EDIT_PLUCK_THRESHOLD:
       rotary.setIncrement(10);
-      rotary.setUpperBound(4096);
+      rotary.setUpperBound(SENSOR_READING_MAX);
       rotary.setLowerBound(0);
       rotary.resetPosition(pluckThresholds[curKeyIndex], false);
       leds.setPixelColor(curKeyIndex, editPluckThresholdColor);
@@ -65,7 +65,7 @@ void click(Button2& btn) {
       break;
     case EDIT_RELEASE_THRESHOLD:
       rotary.setIncrement(10);
-      rotary.setUpperBound(4096);
+      rotary.setUpperBound(SENSOR_READING_MAX);
       rotary.setLowerBound(0);
       rotary.resetPosition(releaseThresholds[curKeyIndex], false);
       leds.setPixelColor(curKeyIndex, editReleaseThresholdColor);

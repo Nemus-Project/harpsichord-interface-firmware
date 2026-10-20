@@ -154,6 +154,15 @@ ThresholdType thresholdType = HYSTERETIC;
 /// Window length — must be a power of 2 so division becomes a bit shift
 #define AVG_SIZE 8
 #define AVG_SHIFT 3   // log2(AVG_SIZE) — update if you change AVG_SIZE
+/// Largest raw ADC value (see `analogReadResolution(12)` in `setup()`)
+#define ADC_MAX 4095
+/// Largest filtered reading: AVG_SIZE samples summed then shifted by
+/// AVG_SHIFT - 1, i.e. 13-bit (8190). Use this, not 4096, for reading ranges.
+#define SENSOR_READING_MAX ((ADC_MAX * AVG_SIZE) >> (AVG_SHIFT - 1))
+/// Threshold written to FRAM when no calibration is stored (13-bit scale)
+#define DEFAULT_THRESHOLD 1600
+/// Reading change per scan that maps to the top of the velocity range (13-bit scale)
+#define VELOCITY_DELTA_MAX 360
 /// Per-sensor ring buffer of raw samples
 uint16_t sensorHistory[numSensors][AVG_SIZE];
 /// Per-sensor running sum (wide enough for 16-bit samples × AVG_SIZE entries)

@@ -94,13 +94,13 @@ byte getOnVelocity(int j) {
   int delta = prevSensorReadings[j] - currSensorReadings[j];
 
   if (j < 3) {
-    velocity = map(delta, 1, 180, 1, 63);
+    velocity = map(delta, 1, VELOCITY_DELTA_MAX, 1, 63);
     if (velocity < 1)
       velocity = 1;
     else if (velocity > 63)
       velocity = 63;
   } else {
-    velocity = map(delta, 1, 180, 65, 127);
+    velocity = map(delta, 1, VELOCITY_DELTA_MAX, 65, 127);
     if (velocity < 65)
       velocity = 65;
     else if (velocity > 127)
@@ -127,13 +127,13 @@ byte getOffVelocity(int j) {
   int delta = currSensorReadings[j] - prevSensorReadings[j];
 
   if (j < 3) {
-    velocity = map(delta, 1, 180, 1, 63);
+    velocity = map(delta, 1, VELOCITY_DELTA_MAX, 1, 63);
     if (velocity < 1)
       velocity = 1;
     else if (velocity > 63)
       velocity = 63;
   } else {
-    velocity = map(delta, 1, 180, 65, 127);
+    velocity = map(delta, 1, VELOCITY_DELTA_MAX, 65, 127);
     if (velocity < 65)
       velocity = 65;
     else if (velocity > 127)

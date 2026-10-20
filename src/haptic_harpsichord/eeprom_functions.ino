@@ -27,7 +27,7 @@ void readPluckFromEEPROM() {
     fram.write(singleThresholdTagAddress, singleThresholdTag, 4);
 
     for (int i = 0; i < numSensors; i++)
-      singlePluckThresholds[i] = 800;
+      singlePluckThresholds[i] = DEFAULT_THRESHOLD;
 
     fram.writeEnable(true);
     fram.write(thresholdValueAddress, (uint8_t*)singlePluckThresholds, numSensors * 2);
@@ -42,7 +42,7 @@ void readPluckFromEEPROM() {
     fram.write(pluckThresholdTagAddress, pluckTag, 4);
 
     for (int i = 0; i < numSensors; i++)
-      pluckThresholds[i] = 800;
+      pluckThresholds[i] = DEFAULT_THRESHOLD;
 
     fram.writeEnable(true);
     fram.write(pluckValueAddress, (uint8_t*)pluckThresholds, numSensors * 2);
@@ -57,7 +57,7 @@ void readPluckFromEEPROM() {
     fram.write(releaseThresholdTagAddress, releaseTag, 4);
 
     for (int i = 0; i < numSensors; i++)
-      releaseThresholds[i] = 800;
+      releaseThresholds[i] = DEFAULT_THRESHOLD;
 
     fram.writeEnable(true);
     fram.write(releaseValueAddress, (uint8_t*)releaseThresholds, numSensors * 2);

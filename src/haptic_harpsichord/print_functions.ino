@@ -37,9 +37,12 @@
  * Uses the tagged data format `TAG:VALUE ` and does not terminate
  * in a new line.
  *
- * Normalising lines for a 10-bit DAC are hardcoded
+ * `min` and `max` are printed as constant `m`/`M` lines that fix the
+ * plotter's vertical scale.
  *
- * @param index
+ * @param index key index
+ * @param min lower plot limit
+ * @param max upper plot limit
  */
 void printJackReading(byte index, uint16_t min, uint16_t max) {
   Serial.print("m:");
@@ -56,6 +59,52 @@ void printJackReading(byte index, uint16_t min, uint16_t max) {
   Serial.print(":");
   Serial.print(currSensorReadings[index]);
   Serial.print(' ');
+}
+
+/**
+ * @brief Print a key's reading with plot limits that follow its thresholds
+ *
+ * Wraps `printJackReading()`, choosing the `m`/`M` limits so the Serial
+ * Plotter window surrounds the key's threshold(s), with a margin equal to the
+ * gap between pluck and release (at least `minMargin`). For an auto-calibrated
+ * key this shows its whole travel, from fully pressed to rest, and selecting
+ * a different key rescales the plot to that key.
+ *
+ * @param index key index
+ */
+void printJackReadingAroundThresholds(byte index) {
+  const int32_t minMargin = 100;
+  int32_t lo, hi;
+
+  switch (thresholdType) {
+    case SINGLE_THRESHOLD:
+      lo = singlePluckThresholds[index];
+      hi = singlePluckThresholds[index];
+      break;
+    case HYSTERETIC:
+    default:
+      lo = pluckThresholds[index];
+      hi = releaseThresholds[index];
+      if (lo > hi) {  // tolerate a mis-calibrated key
+        int32_t t = lo;
+        lo = hi;
+        hi = t;
+      }
+      break;
+  }
+
+  int32_t margin = hi - lo;
+  if (margin < minMargin)
+    margin = minMargin;
+
+  lo -= margin;
+  hi += margin;
+  if (lo < 0)
+    lo = 0;
+  if (hi > SENSOR_READING_MAX)
+    hi = SENSOR_READING_MAX;
+
+  printJackReading(index, lo, hi);
 }
 
 /**
