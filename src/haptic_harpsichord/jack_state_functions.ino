@@ -56,3 +56,41 @@ void checkJackStates() {
   if (anyTrigger)
     ;
 }
+//-----------------------------------------------------------------------------
+/**
+ * @brief Generate MIDI from single threshold crossings
+ *
+ * Shared by `singleThresholdLoop()` and `singleThresholdDebugLoop()` so both
+ * play identically. Call once after each `readSensors()`.
+ */
+void processSingleThreshold() {
+  for (int i = FIRST_ACTIVE_SENSOR; i <= LAST_ACTIVE_SENSOR; i++) {
+    if (currSensorReadings[i] < singlePluckThresholds[i] and prevSensorReadings[i] > singlePluckThresholds[i]) {
+      noteOn(0, index2note(i), 100);
+    } else if (currSensorReadings[i] > singlePluckThresholds[i] and prevSensorReadings[i] < singlePluckThresholds[i]) {
+      noteOff(0, index2note(i), 100);
+    }
+  }
+}
+
+/**
+ * @brief Generate MIDI from hysteretic threshold crossings
+ *
+ * Shared by `hysteresisLoop()` and `hystereticDebugLoop()` so both play
+ * identically. Call once after each `readSensors()`.
+ *
+ * A press makes the reading drop: Note On when it falls below the pluck
+ * threshold, Note Off when it rises above the release threshold. The
+ * `jackStates` gate guarantees on/off messages strictly alternate per key.
+ */
+void processHysteretic() {
+  for (int i = FIRST_ACTIVE_SENSOR; i <= LAST_ACTIVE_SENSOR; i++) {
+    if (currSensorReadings[i] > releaseThresholds[i] and prevSensorReadings[i] <= releaseThresholds[i] and jackStates[i] == PLUCK) {
+      noteOff(0, index2note(i), 100);
+      jackStates[i] = RELEASED;
+    } else if (currSensorReadings[i] < pluckThresholds[i] and prevSensorReadings[i] >= pluckThresholds[i] and jackStates[i] == RELEASED) {
+      noteOn(0, index2note(i), 100);
+      jackStates[i] = PLUCK;
+    }
+  }
+}
