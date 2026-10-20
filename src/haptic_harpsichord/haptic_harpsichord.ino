@@ -175,6 +175,19 @@ uint32_t sensorSums[numSensors];
 /// Circular index into sensorHistory
 uint8_t windex = 0;
 //-----------------------------------------------------------------------------
+// Sensor velocity (updated every scan by readSensors())
+/// Rate of change of each filtered reading, in reading units (13-bit scale)
+/// per second. Negative = reading falling (key going down), positive = rising.
+/// Because readings are a moving average, this is the average slope over the
+/// last AVG_SIZE scans.
+float sensorVelocity[numSensors];
+/// micros() timestamp of the previous scan
+unsigned long lastScanMicros = 0;
+/// Measured time between the last two scans, in microseconds
+unsigned long scanDtMicros = 0;
+/// False until the first scan has recorded lastScanMicros
+bool haveLastScan = false;
+//-----------------------------------------------------------------------------
 // Jack States
 ///
 JackState jackStatesA[numSensors];
@@ -314,6 +327,8 @@ byte backRegisterNoteTable[numSensors] = {
 bool waitingForInput = false;
 /// boolean for printing a data stream to calibrate
 bool shouldPrint = true;
+/// Serial Plotter view in debug mode: false = reading + thresholds, true = velocity
+bool plotVelocity = false;
 //-----------------------------------------------------------------------------
 
 /**

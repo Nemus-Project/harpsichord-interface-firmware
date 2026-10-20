@@ -198,6 +198,43 @@ saves it to FRAM and continues booting. `setRegister()` is no longer called.
 It is kept in the code, marked `@deprecated`, together with the
 `REGISTER_SELECT` encoder mode that only it used.
 
+*Commit `76f71ae` — "fix new FRAM chip startup - default to back register"*
+
+## 9. Continuous per-sensor velocity
+
+**Background.** No velocity was computed on the active path: every note is sent
+with a fixed velocity of 100. `getOnVelocity()` / `getOffVelocity()` and
+`checkJackStates()` exist but are never called.
+
+**Change.** `readSensors()` now updates `sensorVelocity[numSensors]` on every
+scan, for every sensor (new globals in `haptic_harpsichord.ino`). It is not
+used for MIDI yet.
+
+- **Units:** reading units (13-bit scale) per second, as `float`. Negative =
+  reading falling (key going down), positive = rising.
+- **Time step:** measured each scan with `micros()` (`scanDtMicros`), not a fixed
+  per-mode value, because scan time varies with the mode, serial printing and
+  MIDI traffic. Measured as an unsigned difference, so it stays correct when
+  `micros()` (32-bit) wraps around every ~71.6 minutes.
+- **Arithmetic:** one float division per scan (`1e6 / scanDtMicros`), then one
+  multiply per sensor. Using `float` avoids the 32-bit overflow of
+  `delta × 1,000,000` (up to 8.19 × 10⁹). The nRF52840 has a hardware FPU,
+  so the cost is a few µs per scan. Memory: 196 bytes for the array.
+- **Guards:** velocity is 0 on the first scan (no previous timestamp) and if
+  the time step were ever 0.
+- **Meaning:** readings are an 8-sample moving average, so `curr − prev` is the
+  average slope over the last 8 scans. This is less noisy, but lags the real
+  movement by about 4 scans and partly averages out very fast peaks.
+- **Long pauses:** after a blocking pause (for example the 100 ms LED flash on
+  double-click), the next value is the average slope over that whole pause. It
+  is still correct, just not instantaneous.
+- **Plotter:** in (hysteretic) debug mode, serial command `v` toggles the plot
+  between the position view (reading + thresholds) and a velocity view
+  (`printJackVelocity()` in `print_functions.ino`: `V<key>` plus a `Z` zero
+  line, auto-scaled). They are separate views because velocity (tens of
+  thousands of units/s) and readings (a window of a few hundred to a few
+  thousand units) cannot share one axis.
+
 ---
 
 ## Background: 12-bit vs 13-bit readings

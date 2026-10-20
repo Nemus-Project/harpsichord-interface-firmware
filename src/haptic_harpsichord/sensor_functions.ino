@@ -20,8 +20,13 @@
  * A per-sensor moving average filter is applied using the global variables
  * `sensorHistory`, `sensorSums`, and `windex`. Window length is `AVG_SIZE`
  * (must be a power of 2 so division becomes a right shift by `AVG_SHIFT`).
+ *
+ * Also updates `sensorVelocity` for every sensor, using the measured time
+ * since the previous scan (`scanDtMicros`).
  */
 void readSensors() {
+
+  unsigned long scanStartMicros = micros();
 
   // Swap first: old 'curr' becomes 'prev', then we overwrite 'curr' with fresh data.
   tempPointer = prevSensorReadings;
@@ -53,6 +58,25 @@ void readSensors() {
   }
 
   windex = (windex + 1) & (AVG_SIZE - 1);  // wrap (cheap because AVG_SIZE is pow2)
+
+  // Velocity: measured time step, not a fixed per-mode value, since scan time
+  // varies with mode, serial printing and MIDI traffic. Unsigned subtraction
+  // stays correct when micros() wraps around (every ~71.6 minutes).
+  if (haveLastScan)
+    scanDtMicros = scanStartMicros - lastScanMicros;
+  lastScanMicros = scanStartMicros;
+
+  if (haveLastScan and scanDtMicros > 0) {
+    // One division per scan; float avoids the overflow of
+    // (delta * 1000000) in 32-bit integers
+    float perSecond = 1000000.0f / scanDtMicros;
+    for (uint8_t i = 0; i < numSensors; i++)
+      sensorVelocity[i] = (float)((int32_t)currSensorReadings[i] - (int32_t)prevSensorReadings[i]) * perSecond;
+  } else {
+    for (uint8_t i = 0; i < numSensors; i++)
+      sensorVelocity[i] = 0.0f;
+  }
+  haveLastScan = true;
 }
 
 //-----------------------------------------------------------------------------

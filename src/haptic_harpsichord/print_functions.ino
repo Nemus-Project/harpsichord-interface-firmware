@@ -108,6 +108,26 @@ void printJackReadingAroundThresholds(byte index) {
 }
 
 /**
+ * @brief Print the velocity of the given key index for the Serial Plotter
+ *
+ * Prints `Z:0 V<key>:<velocity> ` and does not terminate in a newline.
+ * Velocity is `sensorVelocity` in reading units per second, rounded to an
+ * integer; negative = key going down. `Z` is a constant zero line for
+ * reference. The plotter auto-scales this view.
+ *
+ * @param index key index
+ */
+void printJackVelocity(byte index) {
+  Serial.print("Z:0 ");
+
+  Serial.print("V");
+  Serial.print(index2key(index));
+  Serial.print(":");
+  Serial.print(lroundf(sensorVelocity[index]));
+  Serial.print(' ');
+}
+
+/**
  * @brief Print the threhold value for the given key index
  * 
  * Intended to be used in conjunction with the Arduino IDE serial plotter.

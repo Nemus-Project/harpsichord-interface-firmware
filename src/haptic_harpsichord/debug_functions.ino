@@ -90,11 +90,16 @@ void hystereticDebugLoop() {
    else if (c == 'c') autoCalibrate();
    else if (c == 'f') changeJackRegister(FRONT_REGISTER);
    else if (c == 'b') changeJackRegister(BACK_REGISTER);
+   else if (c == 'v') plotVelocity = !plotVelocity;
   }
 
     if (shouldPrint) {
-      printJackReadingAroundThresholds(curKeyIndex);
-      printJackThreshold(curKeyIndex);
+      if (plotVelocity) {
+        printJackVelocity(curKeyIndex);
+      } else {
+        printJackReadingAroundThresholds(curKeyIndex);
+        printJackThreshold(curKeyIndex);
+      }
       Serial.println();
     }
   }

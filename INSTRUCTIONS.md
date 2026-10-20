@@ -188,12 +188,30 @@ A healthy key looks like this:
 - when pressed, `K` falls below `P`
 - when released, `K` rises back above `R`
 
+### Velocity view
+
+Send `v` to switch the plotter to the selected key's **velocity**, and `v`
+again to switch back. It starts in the position view.
+
+| Line | Meaning |
+|---|---|
+| `V<n>` | velocity of key *n*, in reading units per second |
+| `Z` | zero line |
+
+- **Below zero:** the key is going **down**.
+- **Above zero:** the key is coming **up**.
+- **At rest:** the trace sits near zero, with small noise.
+
+The plotter scales this view automatically. The velocity is smoothed over the
+last 8 scans, so it lags the movement slightly.
+
 ### Serial commands (calibration mode)
 
 | Send | Effect |
 |---|---|
 | `p` | Toggle the plotter stream on/off. |
 | `c` | Run auto-calibration (section 5). |
+| `v` | Switch the plotter between the position view and the velocity view (below). |
 | `f` | Switch to the **front** register and save it to FRAM. |
 | `b` | Switch to the **back** register and save it to FRAM. |
 
