@@ -83,6 +83,7 @@ void hystereticDebugLoop() {
     button.loop();
 
     processHysteretic();
+    updateCapture();
 
    if (Serial.available()) {
      char c = Serial.read();
@@ -91,6 +92,7 @@ void hystereticDebugLoop() {
    else if (c == 'f') changeJackRegister(FRONT_REGISTER);
    else if (c == 'b') changeJackRegister(BACK_REGISTER);
    else if (c == 'v') plotVelocity = !plotVelocity;
+   else if (c == 'r') toggleCapture();
   }
 
     if (shouldPrint) {
@@ -112,6 +114,11 @@ void hystereticDebugLoop() {
  * Turn off LEDs and if any changes have been made they are written to NV RAM
  */
 void exitDebug() {
+  if (captureState != CAPTURE_IDLE) {
+    endCapture();
+    Serial.println("[CAPTURE] cancelled");
+  }
+
   digitalWrite(LEDB, HIGH);  // onboard RGB LED is active low: HIGH turns it off
   writePluckToEEPROM();
 

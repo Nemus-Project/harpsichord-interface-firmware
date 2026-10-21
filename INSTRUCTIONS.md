@@ -28,7 +28,7 @@ The keyboard has two modes:
 
 **Jack register.** The sensor rail reads the keys in opposite order under the
 front and the back register, so the firmware has two mirrored note mappings.
-The register is saved in FRAM and can be changed from serial (section 6).
+The register is saved in FRAM and can be changed from serial (section 6.5).
 
 **Key numbers.** Serial messages refer to sensor positions by number (49 down
 to 1). Positions 1, 2, 48 and 49 are unused, with no key above them.
@@ -59,7 +59,7 @@ with default thresholds (1600) and selects the **back** register, printing:
 No jack register stored, using Back. Send f / b in debug mode to change.
 ```
 Startup continues without waiting for input. If the sensor rail is under the
-front register, switch with `f` in calibration mode (section 6). Then
+front register, switch with `f` in calibration mode (section 6.5). Then
 **calibrate** (section 5): the default thresholds will not play correctly.
 
 ---
@@ -119,7 +119,7 @@ instead of saving.
 ### Workflow
 
 1. Enter calibration mode (section 3).
-2. Open the **Serial Plotter** (section 6) to see the selected key's reading and
+2. Open the **live plot** (section 6) to see the selected key's reading and
    thresholds.
 3. In key select (blue), turn to the key.
 4. Click → pluck (green), and turn until the green line is where you want the
@@ -165,12 +165,98 @@ You can fine-tune individual keys by hand afterwards.
 
 ---
 
-## 6. Serial Plotter
+## 6. Live plot (calibration mode)
 
-Only in calibration mode. It streams the **selected key** continuously. It is
-on by default whenever you enter calibration mode.
+In calibration mode the firmware continuously streams the **selected key** over
+USB serial. It is on by default whenever you enter calibration mode. There are
+two ways to view it:
 
-Open **Tools → Serial Plotter** in the Arduino IDE, at 115200 baud.
+- **6.1 The Python plotter (recommended):** `tools/press_capture.py monitor`.
+  Smoother, readable at any speed, keyboard shortcuts, and it can record presses.
+- **6.2 The Arduino IDE Serial Plotter:** no setup, but more limited.
+
+Only **one** program can use the board's serial port at a time: close one
+before opening the other.
+
+### 6.1 Python plotter (recommended)
+
+**One-time setup**
+
+You need Python 3 with `numpy` and `matplotlib` (already included in Anaconda),
+plus `pyserial`. In a Terminal, run:
+
+```sh
+pip install pyserial
+```
+
+**Each session**
+
+1. **Close** the Arduino IDE Serial Monitor and Serial Plotter, if open.
+2. On the keyboard, enter calibration mode (section 3) and select a key.
+3. Open a Terminal and go to the repository folder:
+   ```sh
+   cd ~/Desktop/LocalStuff/GitHub/harpsichord-interface-firmware
+   ```
+4. Find the board's port name:
+   ```sh
+   ls /dev/cu.usbmodem*
+   ```
+   It prints something like `/dev/cu.usbmodem1101`. If it says "no matches
+   found", the board is not connected, or another program is using it.
+5. Start the plotter with **that** port name:
+   ```sh
+   python3 tools/press_capture.py monitor --port /dev/cu.usbmodem1101
+   ```
+6. A window titled **"press_capture monitor - live"** opens. **Click on it**:
+   the keys below only work while this window is in front, not in the Terminal.
+
+> Type the commands one at a time, exactly as shown. Don't paste comments after
+> them: in the macOS Terminal, text after `#` is not ignored, and an apostrophe
+> leaves the Terminal waiting at a `quote>` prompt. If that happens, press
+> **Ctrl+C** and start again.
+
+**Keys (in the plot window)**
+
+| Key | Effect |
+|---|---|
+| `v` | switch between the **position** view and the **velocity** view |
+| `p` | live stream on/off |
+| `r` | record one press (section 6.4) |
+| `l` | next recording label |
+| `q` | quit (closing the window works too) |
+
+The encoder works as usual while the plotter is running. Selecting another key
+or editing a threshold updates the plot straight away.
+
+**Title line**
+
+The top of the window shows the current label, the number of saved recordings,
+and the status:
+
+| Status | Meaning |
+|---|---|
+| `live` | data is arriving |
+| `no data - is the board in calibration mode?` | nothing received for 2 s: the board is in Play mode, or the stream is off (`p`) |
+| `ARMED - press and release the key` | a recording is waiting for the press |
+| `receiving capture...` | a recording is being transferred |
+| `SERIAL ERROR: …` | the board was unplugged or the port was lost: quit and restart |
+
+If the stream is off when the plotter starts, it turns it on by itself.
+
+**Options**
+
+- `--points 3000`: show more history (default 1500 samples)
+- `--labels a,b,c`: your own recording labels
+- `--out-dir folder`: where recordings are saved (default `captures/`)
+
+### 6.2 Arduino IDE Serial Plotter
+
+Open **Tools → Serial Plotter** in the Arduino IDE, at 115200 baud. Commands
+(section 6.5) are typed in its message box and sent. It cannot save recordings.
+
+### 6.3 What the lines mean
+
+**Position view** (default):
 
 | Line | Meaning |
 |---|---|
@@ -188,10 +274,7 @@ A healthy key looks like this:
 - when pressed, `K` falls below `P`
 - when released, `K` rises back above `R`
 
-### Velocity view
-
-Send `v` to switch the plotter to the selected key's **velocity**, and `v`
-again to switch back. It starts in the position view.
+**Velocity view** (`v`):
 
 | Line | Meaning |
 |---|---|
@@ -211,12 +294,10 @@ apart from noise:
 1. Release the key (Note Off): `L` resets to 0.
 2. Leave it at rest for a moment: `L` settles at the **noise floor**, the lowest
    value the noise reaches.
-3. Press the key: at the pluck, `L` steps down to the **pluck peak**.
+3. Press the key: `L` steps down to the **deepest point of the press**. On
+   normal presses this is the free travel just before the plectrum meets the
+   string, not the pluck itself.
 4. Release: `L` resets for the next try.
-
-The larger the gap between the noise floor and the pluck peak, the more reliably
-the peak can be detected. Try soft and slow presses too, since they give the
-smallest peaks.
 
 The scale is fixed, so noise at rest appears at its real size compared to a key
 press. A faster movement extends the plot beyond the scale. The range is set by
@@ -226,20 +307,76 @@ scans). The number of samples is set by `VELOCITY_WINDOW` in the code (2–32):
 fewer samples react faster but are noisier, more samples are smoother but react
 later. It does not affect the readings or note detection.
 
-### Serial commands (calibration mode)
+### 6.4 Recording a press (`r`)
+
+Records one press of the selected key, scan by scan, for offline analysis
+(for example, studying the velocity around the pluck). Not needed for normal
+use.
+
+**With the Python plotter (6.1):** press `r` in the plot window. When the title
+shows **ARMED**, press and release the key. The recording is **saved
+automatically** in `captures/` (named with date, key and current label) and
+shown in a second window. Press `r` again for the next one; `l` changes the label
+(soft, normal, hard, very-hard, no-pluck, barely-pluck). `captures/` is in
+`.gitignore`.
+
+**What the firmware does:**
+1. On `r`, the key's LED turns **white** and the plot stream pauses. Nothing is
+   printed while recording, so the timing is the same as in normal playing.
+2. Recording **starts** when the reading falls below the release threshold, and
+   keeps the ~500 scans before that (key at rest, start of the movement).
+3. It **ends** once the key has been back above the release threshold for 300
+   scans, or after 4000 scans (~4 s). `r` again cancels.
+4. The press is sent as CSV between `[CAPTURE] BEGIN` and `[CAPTURE] END`.
+   Columns: `t_us` (time in µs), `raw` (raw sample), `reading` (filtered
+   reading), `note_on` (1 while the note is on). Header lines starting with `#`
+   give the key, its thresholds and settings.
+
+The Arduino **Serial Plotter cannot save** recordings: the data is lost. The
+Serial Monitor shows it, but it has to be copied into a file by hand.
+
+**Looking at saved recordings** (no board needed):
+
+```sh
+python3 tools/press_capture.py plot captures/FILE.csv
+```
+
+```sh
+python3 tools/press_capture.py plot captures/*soft*.csv --overlay
+```
+
+Add `--window 9` to recompute the velocity with another window. The plots show
+position over time, velocity over time, and velocity against position (where an
+event at a fixed position lines up vertically across presses).
+
+A fixed number of presses can also be recorded from the Terminal, without the
+live plot:
+
+```sh
+python3 tools/press_capture.py capture --port /dev/cu.usbmodem1101 --label soft --count 10
+```
+
+### 6.5 Serial commands (calibration mode)
+
+In the Python plotter, `v`, `p` and `r` are sent for you. In the Arduino IDE,
+type them in the Serial Monitor / Plotter message box.
 
 | Send | Effect |
 |---|---|
-| `p` | Toggle the plotter stream on/off. |
+| `p` | Toggle the plot stream on/off. |
+| `v` | Switch between the position view and the velocity view. |
 | `c` | Run auto-calibration (section 5). |
-| `v` | Switch the plotter between the position view and the velocity view (below). |
 | `f` | Switch to the **front** register and save it to FRAM. |
 | `b` | Switch to the **back** register and save it to FRAM. |
+| `r` | Record one press of the selected key (6.4). Send again to cancel. |
 
 `f` / `b` print the active register (`Jack Register: Front` / `Back`). Any note
 sounding at that moment is released first, so nothing hangs. Thresholds belong
 to sensor positions, so they are kept. If the rail is physically moved to the
 other register, recalibrate, because the jacks sit differently.
+
+`c`, `f` and `b` are not available as keys in the Python plotter. To use them,
+quit the plotter and use the Arduino IDE Serial Monitor.
 
 Other characters are ignored. In Play mode, serial input is ignored entirely.
 
@@ -258,6 +395,7 @@ Other characters are ignored. In Play mode, serial input is ignored entirely.
 | all magenta | auto-cal phase 1, don't touch |
 | dim / bright green | auto-cal phase 2: waiting / key detected |
 | yellow | auto-cal: key skipped |
+| white (one key) | press recording armed (`r`) |
 | off | Play mode |
 
 **Onboard LEDs (on the Arduino)**

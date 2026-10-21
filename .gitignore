@@ -9,3 +9,5 @@ application.windows64
 application.macosx
 out
 CLAUDE.md
+captures/
+__pycache__/

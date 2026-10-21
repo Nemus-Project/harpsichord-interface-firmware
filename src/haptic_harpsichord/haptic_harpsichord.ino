@@ -358,6 +358,47 @@ bool shouldPrint = true;
 /// Serial Plotter view in debug mode: false = reading + thresholds, true = velocity
 bool plotVelocity = false;
 //-----------------------------------------------------------------------------
+// Press capture (debug mode, serial command `r`, see capture_functions.ino)
+/// Capture state machine
+enum CaptureState {
+  CAPTURE_IDLE,       ///< not capturing
+  CAPTURE_ARMED,      ///< recording into the ring buffer, waiting for the trigger
+  CAPTURE_RECORDING,  ///< triggered: recording until the key is released
+};
+/// Maximum number of scans in one capture (about 4 s at 1 ms per scan)
+#define CAPTURE_SIZE 4000
+/// Scans kept from before the trigger, to include the key at rest and the
+/// start of the free travel
+#define CAPTURE_PRE 500
+/// Consecutive scans the reading must stay above the release threshold after
+/// the press before the capture ends
+#define CAPTURE_POST 300
+///
+CaptureState captureState = CAPTURE_IDLE;
+/// Key index being captured (fixed when the capture is armed)
+uint8_t captureKey = 0;
+/// Ring buffer: scan start time (micros()) of each sample
+unsigned long captureTime[CAPTURE_SIZE];
+/// Ring buffer: raw 12-bit sample of the captured key
+uint16_t captureRaw[CAPTURE_SIZE];
+/// Ring buffer: filtered 13-bit reading of the captured key
+uint16_t captureReading[CAPTURE_SIZE];
+/// Ring buffer: 1 while the key's note is on (jackStates == PLUCK), else 0
+uint8_t captureNoteOn[CAPTURE_SIZE];
+/// Next slot to write
+uint16_t captureHead = 0;
+/// Number of valid samples in the ring buffer (saturates at CAPTURE_SIZE)
+uint16_t captureFilled = 0;
+/// Samples belonging to the capture once triggered (pre-trigger + after)
+uint16_t captureLength = 0;
+/// Pre-trigger samples kept at the trigger
+uint16_t capturePreKept = 0;
+/// Consecutive scans above the release threshold after the press
+uint16_t captureAboveCount = 0;
+/// shouldPrint before arming, restored afterwards (printing is paused while
+/// capturing so it does not disturb the scan timing)
+bool captureSavedPrint = true;
+//-----------------------------------------------------------------------------
 
 /**
  * @brief Arduino setup function

@@ -400,6 +400,100 @@ string stands out from noise clearly enough to be used for MIDI.
 **Not reset** by a register change (`f` / `b`), which releases sounding notes
 without going through `processHysteretic()`. The next normal Note Off resets it.
 
+*Section 14: commit `2675a94` — "print lowest velocity for debug"*
+
+## 15. Press capture for pluck analysis (`r`) and `tools/press_capture.py`
+
+**Purpose.** The velocity profile of a press has a deep dip during the free
+travel, a stall when the plectrum meets the string, and a smaller dip after the
+pluck. On very hard presses, the stall almost disappears and the peak comes
+right after the pluck. To design a "pluck detected" check for Note On (position
+zone + acceleration at release), real press data is needed first. Note: the
+pluck zone may differ per key; each capture records its own key and thresholds.
+
+**Firmware** (new `capture_functions.ino`; globals in `haptic_harpsichord.ino`):
+- Serial command `r` in the (hysteretic) debug loop arms a capture of the
+  selected key. `r` again cancels it, and so does leaving debug mode.
+- While armed, each scan is written to a ring buffer of `CAPTURE_SIZE` (4000)
+  samples. A falling crossing of the key's release threshold triggers the
+  capture, keeping up to `CAPTURE_PRE` (500) earlier samples. The capture ends
+  once the reading has stayed above the release threshold for `CAPTURE_POST`
+  (300) consecutive scans, or when the buffer is full.
+- Each sample stores the scan time (µs), the raw 12-bit sample, the filtered
+  13-bit reading, and whether the note is on. Raw samples are stored so the
+  velocity can be recomputed offline with any method or window. Memory: about
+  36 KB.
+- Nothing is printed while capturing (plot printing is paused and restored
+  afterwards), so the scan timing matches normal use. The captured key's LED is
+  white while armed.
+- The capture is then dumped as CSV between `[CAPTURE] BEGIN` / `[CAPTURE] END`,
+  with `#` header lines: key, sensor index, register, thresholds, averaging and
+  velocity settings, sample count, pre-trigger count, end reason.
+
+**Script** `tools/press_capture.py`:
+- `capture`: sends `r`, waits for the dump, saves it as
+  `captures/<date>_key<N>_<label>.csv`, prints a summary (duration, scan-time
+  statistics, whether a note was sent), and plots it. `--count N` records
+  several presses in a row; `--label` names the press type.
+- `plot`: plots saved files, one figure each or `--overlay` aligned at the
+  trigger, with `--window` to try different velocity windows.
+- Plots: position over time (thresholds, note-on periods), velocity over time
+  (the firmware's least-squares method, placed at the window centre so it has
+  no lag offline), and velocity against position, where a pluck at a fixed
+  position lines up vertically.
+- `monitor`: replaces the Arduino Serial Plotter, which cannot save the
+  recordings. A live plot of the firmware's plot stream (any series, `m`/`M` as
+  the scale) that turns the stream on with `p` if none arrives. Keys in the
+  window: `r` arms a capture (the firmware's `r`), `l` cycles the label
+  (`--labels`, default soft, normal, hard, very-hard, no-pluck, barely-pluck),
+  `v` / `p` are forwarded to the board, `q` quits. Each capture is saved
+  automatically, summarised in the terminal and drawn in a second window. An
+  armed capture is cancelled on exit. Matplotlib's own shortcuts for these keys
+  are disabled in the monitor.
+- Requires numpy and matplotlib. Live capture and the monitor also need pyserial.
+- `.gitignore`: added `captures/` (recordings) and `__pycache__/`.
+
+**Status: kept, not in active use.** The capture system (firmware `r`, the
+`capture` / `monitor` / `plot` commands) is complete and stays in the code, but
+there is **no analysis script yet**. It is not needed for now, because the
+pluck timing was solved physically (section 16). `plot` only displays
+recordings; turning them into a pluck-detection rule would be the next step, if
+it is ever needed.
+
+## 16. Pluck timing solved by shifting the jack stickers; Python plotter guide
+
+**Finding.** Shifting the reflective sticker on a jack, which moves its light
+gradient relative to the sensor, makes Note On match the real pluck. So the
+velocity-based "pluck detected" check (sections 14–15) is not needed for now.
+The stickers on all jacks have to be shifted. The procedure and a per-jack
+checklist (note, MIDI number, key number for both registers) are in the new
+**`JACK_STICKER_ADJUSTMENT.md`**. Some details (direction, distance, how to
+check) are still to be filled in. After all stickers are moved, the whole
+keyboard must be recalibrated.
+
+**No firmware change.** The velocity computation, the velocity view, `L`, and
+the capture system all stay as they are.
+
+**`INSTRUCTIONS.md`, section 6 restructured** around the Python plotter
+(`tools/press_capture.py monitor`). It is now the recommended way to view the
+live stream, since it works better than the Arduino IDE Serial Plotter:
+- 6.1: step-by-step setup and use: one-time `pip install pyserial`, finding
+  the port, starting it, clicking the window, the keys, the status line,
+  options. Shell commands are given one per block, with a warning about the
+  macOS Terminal `quote>` problem caused by pasting comments.
+- 6.2: the Arduino IDE Serial Plotter as the alternative.
+- 6.3: what the lines mean (position and velocity views, `L`). Clarifies that
+  `L` captures the deepest point of the press, which on normal presses is the
+  free travel before the string, not the pluck.
+- 6.4: recording a press, marked as not needed for normal use.
+- 6.5: serial commands, with a note that `c`, `f`, `b` need the Arduino IDE
+  Serial Monitor because the plotter has no keys for them.
+- Tested on a synthetic capture in the firmware's format: saving and loading,
+  summary, exact velocity on a ramp with irregular timing, and both plot types.
+  The monitor was tested against a simulated serial port (stream initially off,
+  `r` → armed → dump → saved with the current label → plotted). Not yet tested
+  against the real board.
+
 ---
 
 ## Background: 12-bit vs 13-bit readings
