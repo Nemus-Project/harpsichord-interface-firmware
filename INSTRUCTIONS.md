@@ -302,10 +302,12 @@ apart from noise:
 The scale is fixed, so noise at rest appears at its real size compared to a key
 press. A faster movement extends the plot beyond the scale. The range is set by
 `VELOCITY_PLOT_RANGE` in the code. The velocity is the slope of a straight line
-fitted through the last 5 samples, so it lags the movement slightly (about 2
-scans). The number of samples is set by `VELOCITY_WINDOW` in the code (2–32):
-fewer samples react faster but are noisier, more samples are smoother but react
-later. It does not affect the readings or note detection.
+fitted through the last `VELOCITY_WINDOW` samples, so it lags the movement by
+about (`VELOCITY_WINDOW` − 1) / 2 scans. The window is currently **12 samples**
+(about 5.5 scans of lag), but this is still being tuned and may change. It can be
+set from 2 to 32 in the code: fewer samples react faster but are noisier, more
+samples are smoother but react later. It does not affect the readings or note
+detection.
 
 ### 6.4 Recording a press (`r`)
 
