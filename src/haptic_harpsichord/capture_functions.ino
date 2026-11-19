@@ -62,7 +62,7 @@ void toggleCapture() {
 /**
  * @brief Record the current scan into the capture buffer
  *
- * Call once per scan, after readSensors() and processHysteretic(). Does
+ * Call once per scan, after readSensors() and processNotes(). Does
  * nothing unless a capture is armed or recording.
  */
 void updateCapture() {
@@ -129,6 +129,8 @@ void finishCapture(bool bufferFull) {
   Serial.println(captureKey);
   Serial.print("# register: ");
   Serial.println(jackRegister == FRONT_REGISTER ? "front" : "back");
+  Serial.print("# detection: ");
+  Serial.println(detectionMode == VELOCITY_DETECTION ? "velocity" : "position");
   Serial.print("# pluck_threshold: ");
   Serial.println(pluckThresholds[captureKey]);
   Serial.print("# release_threshold: ");

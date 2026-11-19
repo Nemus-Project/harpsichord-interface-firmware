@@ -115,7 +115,8 @@ void printJackReadingAroundThresholds(byte index) {
  * second, rounded to an integer; negative = key going down. `L` is
  * `minVelocitySinceRelease`: the lowest velocity since the last Note Off,
  * which shows the noise floor between notes and the pluck peak during a
- * press. `Z` is a constant zero line.
+ * press. `Z` is a constant zero line, `A` the velocity detection arm level
+ * (-velocityOnThreshold), which moves when it is edited with the encoder.
  * `m` / `M` are constant lines at -/+ VELOCITY_PLOT_RANGE that fix the
  * plotter's scale. Faster movements still extend the plot.
  *
@@ -127,6 +128,9 @@ void printJackVelocity(byte index) {
   Serial.print(" M:");
   Serial.print(VELOCITY_PLOT_RANGE);
   Serial.print(" Z:0 ");
+  Serial.print("A:");
+  Serial.print(-(long)velocityOnThreshold);
+  Serial.print(' ');
 
   Serial.print("V");
   Serial.print(index2key(index));
@@ -190,6 +194,11 @@ void printFirmwareInfo() {
       Serial.println("Hysteretic");
       break;
   }
+
+  Serial.print("Detection: ");
+  Serial.println(detectionMode == VELOCITY_DETECTION ? "Velocity" : "Position");
+  Serial.print("Velocity threshold: ");
+  Serial.println(velocityOnThreshold);
 
   Serial.print("Jack Register: ");
   switch (jackRegister) {

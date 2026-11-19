@@ -76,10 +76,118 @@ void processSingleThreshold() {
 }
 
 /**
- * @brief Generate MIDI from hysteretic threshold crossings
+ * @brief Generate MIDI for all active keys with the selected detection method
  *
  * Shared by `hysteresisLoop()` and `hystereticDebugLoop()` so both play
  * identically. Call once after each `readSensors()`.
+ *
+ * @see DetectionMode, processHysteretic(), processVelocityDetection()
+ */
+void processNotes() {
+  // Track the lowest velocity since the last Note Off (see minVelocitySinceRelease)
+  for (int i = FIRST_ACTIVE_SENSOR; i <= LAST_ACTIVE_SENSOR; i++) {
+    if (sensorVelocity[i] < minVelocitySinceRelease[i])
+      minVelocitySinceRelease[i] = sensorVelocity[i];
+  }
+
+  if (detectionMode == VELOCITY_DETECTION)
+    processVelocityDetection();
+  else
+    processHysteretic();
+}
+
+/**
+ * @brief Generate MIDI from the velocity peak (no per-key calibration)
+ *
+ * Per key, while RELEASED:
+ * 1. Arm when the velocity falls below -velocityOnThreshold (start of a
+ *    press); remember the reading at that moment (`pressStartReading`).
+ * 2. Track the lowest velocity since arming (`velocityPeak`).
+ * 3. Note On once the velocity has risen back by VELOCITY_PEAK_DROP of that
+ *    peak, i.e. just after the velocity peak.
+ *
+ * While PLUCK: track the lowest reading (`pressBottomReading`) and send Note
+ * Off once the reading has come back up VELOCITY_OFF_FRACTION of the way from
+ * that bottom to `pressStartReading`. Both levels come from the press itself,
+ * so no thresholds need to be calibrated.
+ *
+ * The velocity lags the movement by about (VELOCITY_WINDOW - 1) / 2 scans,
+ * and the peak is only recognised once the velocity rises again, so keep
+ * VELOCITY_WINDOW short (see its comment).
+ */
+void processVelocityDetection() {
+  for (int i = FIRST_ACTIVE_SENSOR; i <= LAST_ACTIVE_SENSOR; i++) {
+    float v = sensorVelocity[i];
+    int32_t reading = currSensorReadings[i];
+
+    if (jackStates[i] == RELEASED) {
+      if (not velocityArmed[i]) {
+        if (v < -(float)velocityOnThreshold) {
+          velocityArmed[i] = true;
+          velocityPeak[i] = v;
+          pressStartReading[i] = reading;
+        }
+      } else {
+        if (v < velocityPeak[i])
+          velocityPeak[i] = v;
+        if (v > velocityPeak[i] * (1.0f - VELOCITY_PEAK_DROP)) {
+          noteOn(0, index2note(i), 100);
+          jackStates[i] = PLUCK;
+          velocityArmed[i] = false;
+          pressBottomReading[i] = reading;
+        }
+      }
+    } else {
+      if (reading < pressBottomReading[i])
+        pressBottomReading[i] = reading;
+
+      int32_t bottom = pressBottomReading[i];
+      if (reading > bottom + VELOCITY_OFF_FRACTION * (float)(pressStartReading[i] - bottom)) {
+        noteOff(0, index2note(i), 100);
+        jackStates[i] = RELEASED;
+        minVelocitySinceRelease[i] = 0.0f;
+      }
+    }
+  }
+}
+
+/**
+ * @brief Switch the note detection method at runtime
+ *
+ * Any note currently sounding is released first and every key's velocity
+ * detection state is reset, so no note is left hanging and the new method
+ * starts from a clean state.
+ *
+ * @param newMode detection method to switch to
+ * @see DetectionMode
+ */
+void setDetectionMode(DetectionMode newMode) {
+  for (int i = FIRST_ACTIVE_SENSOR; i <= LAST_ACTIVE_SENSOR; i++) {
+    if (jackStates[i] == PLUCK) {
+      noteOff(0, index2note(i), 100);
+      jackStates[i] = RELEASED;
+    }
+    velocityArmed[i] = false;
+    minVelocitySinceRelease[i] = 0.0f;
+  }
+  detectionMode = newMode;
+
+  // Keep the encoder and LEDs in step if the mode was changed over serial (`d`)
+  // while in DETECTION_SELECT
+  if (rotaryMode == DETECTION_SELECT) {
+    rotary.resetPosition(detectionMode == VELOCITY_DETECTION ? 1 : 0, false);
+    showDetectionSelectLeds();
+    leds.show();
+  }
+
+  Serial.print("Detection: ");
+  Serial.println(detectionMode == VELOCITY_DETECTION ? "Velocity" : "Position");
+}
+
+/**
+ * @brief Generate MIDI from hysteretic threshold crossings (position detection)
+ *
+ * Called by processNotes() when detectionMode is POSITION_DETECTION.
  *
  * A press makes the reading drop: Note On when it falls below the pluck
  * threshold, Note Off when it rises above the release threshold. The
@@ -87,10 +195,6 @@ void processSingleThreshold() {
  */
 void processHysteretic() {
   for (int i = FIRST_ACTIVE_SENSOR; i <= LAST_ACTIVE_SENSOR; i++) {
-    // Track the lowest velocity since the last Note Off (see minVelocitySinceRelease)
-    if (sensorVelocity[i] < minVelocitySinceRelease[i])
-      minVelocitySinceRelease[i] = sensorVelocity[i];
-
     if (currSensorReadings[i] > releaseThresholds[i] and prevSensorReadings[i] <= releaseThresholds[i] and jackStates[i] == PLUCK) {
       noteOff(0, index2note(i), 100);
       jackStates[i] = RELEASED;

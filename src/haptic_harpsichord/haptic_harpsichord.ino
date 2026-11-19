@@ -83,6 +83,8 @@ enum RotaryMode {
   EDIT_PLUCK_THRESHOLD,
   EDIT_RELEASE_THRESHOLD,
   REGISTER_SELECT,
+  DETECTION_SELECT,         ///< turning switches position / velocity detection
+  EDIT_VELOCITY_THRESHOLD,  ///< turning sets velocityOnThreshold (all keys)
 };
 
 /// Note detection method. Use HYSTERETIC.
@@ -94,6 +96,13 @@ enum RotaryMode {
 enum ThresholdType {
   SINGLE_THRESHOLD,  ///< @deprecated do not use, see ThresholdType
   HYSTERETIC,
+};
+
+/// How Note On / Note Off are detected (HYSTERETIC threshold type only).
+/// Switched at runtime with serial `d` in debug mode, see setDetectionMode().
+enum DetectionMode {
+  POSITION_DETECTION,  ///< calibrated pluck / release thresholds on the reading
+  VELOCITY_DETECTION,  ///< velocity peak, no per-key calibration needed
 };
 //-----------------------------------------------------------------------------
 #define numSensors 49
@@ -154,6 +163,9 @@ uint16_t* currSensorReadings = sensorReadingsA;
 uint16_t* tempPointer;
 ///
 ThresholdType thresholdType = HYSTERETIC;  // must stay HYSTERETIC: SINGLE_THRESHOLD is deprecated
+/// Active note detection method. Stored in FRAM (saved with the thresholds);
+/// this default is used when FRAM holds no valid value.
+DetectionMode detectionMode = POSITION_DETECTION;
 //-----------------------------------------------------------------------------
 // Moving average filter
 /// Window length — must be a power of 2 so division becomes a bit shift
@@ -183,16 +195,21 @@ uint8_t windex = 0;
 float sensorVelocity[numSensors];
 /// Lowest (most negative = fastest downward) velocity of each key since its
 /// last Note Off. Reset to 0 at Note Off, so between notes it tracks the noise
-/// floor and during a press it captures the peak at the pluck. Updated by
-/// processHysteretic(); shown as `L<key>` in the debug velocity plot.
+/// floor and during a press it captures the press peak. Updated by
+/// processNotes(); shown as `L<key>` in the debug velocity plot.
 float minVelocitySinceRelease[numSensors];
 /// Number of raw samples in the velocity fit, 2 to VELOCITY_WINDOW_MAX. The
 /// velocity has its own history buffer, so this is independent of the reading
-/// moving average (AVG_SIZE) and of note detection. Centred
-/// (VELOCITY_WINDOW - 1) / 2 scans back: shorter = less lag but more noise,
-/// longer = more lag but less noise (noise scales roughly with
-/// VELOCITY_WINDOW^-1.5). Memory: numSensors x VELOCITY_WINDOW x 2 bytes.
-#define VELOCITY_WINDOW 12
+/// moving average (AVG_SIZE). Centred (VELOCITY_WINDOW - 1) / 2 scans back:
+/// shorter = less lag but more noise, longer = more lag but less noise (noise
+/// scales roughly with VELOCITY_WINDOW^-1.5). Memory: numSensors x
+/// VELOCITY_WINDOW x 2 bytes.
+/// It also sets the timing of VELOCITY_DETECTION: with 2 ms scans, 12 made
+/// velocity Note On ~6 ms later than position detection in the 2026-11-19
+/// recordings, while 4-5 made it earlier. Keep it at 4-5 for velocity
+/// detection; velocityOnThreshold must stay above the velocity noise at rest,
+/// which grows as the window shrinks (3 was too noisy).
+#define VELOCITY_WINDOW 5
 /// Upper limit for VELOCITY_WINDOW (keeps memory and per-scan work bounded)
 #define VELOCITY_WINDOW_MAX 32
 #if (VELOCITY_WINDOW < 2) || (VELOCITY_WINDOW > VELOCITY_WINDOW_MAX)
@@ -215,6 +232,38 @@ unsigned long windowMicros = 0;
 /// Serial Plotter velocity view: fixed plot range ±VELOCITY_PLOT_RANGE
 /// (reading units per second)
 #define VELOCITY_PLOT_RANGE 15000
+//-----------------------------------------------------------------------------
+// Velocity detection (detectionMode == VELOCITY_DETECTION, see processVelocityDetection())
+/// Arm level: a press starts when the velocity falls below -velocityOnThreshold
+/// (reading units per second, same for all keys). Must be well beyond the
+/// velocity noise at rest and below the slowest real press (2026-11-19,
+/// window 5: noise down to -6800, slowest press peak -26600).
+/// Set with the encoder (EDIT_VELOCITY_THRESHOLD) and stored in FRAM; this
+/// default is used when FRAM holds no valid value.
+#define DEFAULT_VELOCITY_ON_THRESHOLD 15000
+/// Encoder range and step for velocityOnThreshold
+#define VELOCITY_ON_THRESHOLD_MIN 1000
+#define VELOCITY_ON_THRESHOLD_MAX 60000
+#define VELOCITY_ON_THRESHOLD_STEP 500
+///
+uint16_t velocityOnThreshold = DEFAULT_VELOCITY_ON_THRESHOLD;
+/// Note On fires when the velocity has risen back by this fraction of the
+/// lowest value since arming (the peak), i.e. just after the velocity peak.
+/// The margin keeps noise wiggles around the peak from firing early.
+#define VELOCITY_PEAK_DROP 0.1f
+/// Note Off fires when the reading has come back up this fraction of the way
+/// from the bottom of the press to where the press started (both measured per
+/// press, so no calibration is needed)
+#define VELOCITY_OFF_FRACTION 0.75f
+/// True while a press has started (velocity below -velocityOnThreshold) and
+/// the peak is being tracked
+bool velocityArmed[numSensors];
+/// Lowest velocity since arming (the peak so far)
+float velocityPeak[numSensors];
+/// Reading when the press was armed (near rest)
+uint16_t pressStartReading[numSensors];
+/// Lowest reading since Note On (bottom of the press)
+uint16_t pressBottomReading[numSensors];
 //-----------------------------------------------------------------------------
 // Jack States
 ///
@@ -245,6 +294,12 @@ const uint32_t keySelectColor = leds.Color(0, 0, 100);
 const uint32_t editPluckThresholdColor = leds.Color(0, 100, 0);
 ///
 const uint32_t editReleaseThresholdColor = leds.Color(100, 0, 100);
+/// Selected key while editing the velocity threshold
+const uint32_t editVelocityThresholdColor = leds.Color(100, 40, 0);
+/// Whole strip in DETECTION_SELECT when position detection is chosen
+const uint32_t positionDetectionColor = leds.Color(0, 30, 0);
+/// Whole strip in DETECTION_SELECT when velocity detection is chosen
+const uint32_t velocityDetectionColor = leds.Color(40, 15, 0);
 ///
 uint32_t currentLedColor = keySelectColor;
 //-----------------------------------------------------------------------------
@@ -311,6 +366,19 @@ const uint16_t registerTypeTagAddress = releaseValueAddress + (numSensors * 2);
 const uint8_t registerTypeTag[4] = { 'R', 'E', 'G', 'I' };
 ///
 const uint16_t registerTypeAddress = registerTypeTagAddress + 4;
+/// Added after the register so existing addresses (and stored calibration) do
+/// not move
+const uint16_t velocityThresholdTagAddress = registerTypeAddress + sizeof(JackRegister);
+///
+const uint8_t velocityThresholdTag[4] = { 'V', 'T', 'H', 'R' };
+///
+const uint16_t velocityThresholdAddress = velocityThresholdTagAddress + 4;
+///
+const uint16_t detectionModeTagAddress = velocityThresholdAddress + sizeof(velocityOnThreshold);
+///
+const uint8_t detectionModeTag[4] = { 'D', 'E', 'T', 'M' };
+///
+const uint16_t detectionModeAddress = detectionModeTagAddress + 4;
 //-----------------------------------------------------------------------------
 // MIDI Variables
 /// MIDI Communication over USB Object, see the PluggableUSBMIDI library
@@ -512,7 +580,7 @@ void hysteresisLoop() {
   while (!executeDebugMode) {
     readSensors();
     button.loop();
-    processHysteretic();
+    processNotes();
   }
 }
 

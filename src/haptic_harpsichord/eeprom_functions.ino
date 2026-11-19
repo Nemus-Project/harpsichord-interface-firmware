@@ -77,9 +77,34 @@ void readPluckFromEEPROM() {
     jackRegister = BACK_REGISTER;
     Serial.println("No jack register stored, using Back. Send f / b in debug mode to change.");
     writeRegisterToEEPROM();
-  } else {    
+  } else {
     fram.read(registerTypeAddress, (uint8_t*)(&jackRegister), sizeof(jackRegister));
   }
+
+  // Velocity detection settings: use the defaults if the tags are missing
+  // (chip written by older firmware) or the values are out of range
+  bool velocitySettingsValid = true;
+
+  fram.read(velocityThresholdTagAddress, (uint8_t*)&tagRead, 4);
+  if (tagRead == *((uint32_t*)velocityThresholdTag))
+    fram.read(velocityThresholdAddress, (uint8_t*)&velocityOnThreshold, sizeof(velocityOnThreshold));
+  if (tagRead != *((uint32_t*)velocityThresholdTag)
+      or velocityOnThreshold < VELOCITY_ON_THRESHOLD_MIN or velocityOnThreshold > VELOCITY_ON_THRESHOLD_MAX) {
+    velocityOnThreshold = DEFAULT_VELOCITY_ON_THRESHOLD;
+    velocitySettingsValid = false;
+  }
+
+  fram.read(detectionModeTagAddress, (uint8_t*)&tagRead, 4);
+  if (tagRead == *((uint32_t*)detectionModeTag))
+    fram.read(detectionModeAddress, (uint8_t*)&detectionMode, sizeof(detectionMode));
+  if (tagRead != *((uint32_t*)detectionModeTag)
+      or (detectionMode != POSITION_DETECTION and detectionMode != VELOCITY_DETECTION)) {
+    detectionMode = POSITION_DETECTION;
+    velocitySettingsValid = false;
+  }
+
+  if (not velocitySettingsValid)
+    writeVelocitySettingsToEEPROM();
 
   fram.writeEnable(false);
 }
@@ -101,6 +126,37 @@ void writePluckToEEPROM() {
 
   fram.writeEnable(true);
   if (!fram.write(releaseValueAddress, (uint8_t*)releaseThresholds, numSensors * 2))
+    digitalWrite(LEDR, LOW);
+
+  fram.writeEnable(false);
+
+  writeVelocitySettingsToEEPROM();
+}
+
+/**
+ * @brief Write the velocity detection settings and their tags to memory
+ *
+ * Stores `velocityOnThreshold` and `detectionMode`. Called by
+ * writePluckToEEPROM() (double-click, leaving debug mode) and when the stored
+ * values are missing. Write enable is set before each write; on failure the
+ * onboard RED LED turns on.
+ */
+void writeVelocitySettingsToEEPROM() {
+
+  fram.writeEnable(true);
+  if (!fram.write(velocityThresholdTagAddress, velocityThresholdTag, 4))
+    digitalWrite(LEDR, LOW);
+
+  fram.writeEnable(true);
+  if (!fram.write(velocityThresholdAddress, (uint8_t*)&velocityOnThreshold, sizeof(velocityOnThreshold)))
+    digitalWrite(LEDR, LOW);
+
+  fram.writeEnable(true);
+  if (!fram.write(detectionModeTagAddress, detectionModeTag, 4))
+    digitalWrite(LEDR, LOW);
+
+  fram.writeEnable(true);
+  if (!fram.write(detectionModeAddress, (uint8_t*)&detectionMode, sizeof(detectionMode)))
     digitalWrite(LEDR, LOW);
 
   fram.writeEnable(false);

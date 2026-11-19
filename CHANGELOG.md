@@ -494,6 +494,136 @@ live stream, since it works better than the Arduino IDE Serial Plotter:
   `r` → armed → dump → saved with the current label → plotted). Not yet tested
   against the real board.
 
+*Sections 15–16: commit `3d1599f` — "add python plotter and pluck record system."*
+
+## 17. Velocity detection mode (switchable with position detection)
+
+**Background.** With the sticker moved (so far only on the lowest key, E2 =
+key 47), the velocity peak is clearly picked up, but position detection sends
+Note On too late compared with when the jack actually hits the string (as
+observed on the instrument). Velocity detection also has the potential to make
+per-key calibration unnecessary.
+
+**Analysis** of 4 recordings of key 47 (normal, hard, very hard, slow; the file
+labelled `no-pluck` is actually a slow pluck). The scan time is **2 ms**, and
+the whole press from rest to bottom takes only about 12 ms (~6 scans). An
+offline simulation of the detector, using exactly the firmware's causal
+least-squares velocity, gave:
+- `VELOCITY_WINDOW` 12: velocity Note On about **6 ms later** than position
+  detection. The window lag cancels any gain.
+- `VELOCITY_WINDOW` 4–5, arm threshold 12,000: exactly one Note On and one Note
+  Off per press, no triggers at rest, Note On **2–4 ms earlier** than position
+  detection in these recordings.
+- `VELOCITY_WINDOW` 3: too noisy (velocity noise at rest down to −19,000),
+  multiple false notes.
+- A Note Off rule based on returning above the arm-time reading failed for one
+  press (armed while still at rest level). It was replaced by a per-press
+  fraction of the travel (below), which worked for all.
+
+**Change.**
+- New `DetectionMode` (`POSITION_DETECTION` default, `VELOCITY_DETECTION`) and
+  `detectionMode` in `haptic_harpsichord.ino`. Serial command `d` in debug mode
+  toggles it (`setDetectionMode()`): sounding notes are released and the
+  velocity state is reset first. It is not saved; it resets to position at boot.
+- New `processNotes()` (`jack_state_functions.ino`) is called by both
+  `hysteresisLoop()` and `hystereticDebugLoop()`. It updates
+  `minVelocitySinceRelease` (moved here from `processHysteretic()`) and
+  dispatches to `processHysteretic()` (position, unchanged) or the new
+  `processVelocityDetection()`.
+- `processVelocityDetection()`, per key, calibration-free. Each scan:
+  - While `RELEASED` and not armed: **arm** when the velocity falls below
+    −`VELOCITY_ON_THRESHOLD`. Store that velocity as the peak so far
+    (`velocityPeak`) and the current reading as `pressStartReading`.
+  - While armed: if the velocity is lower than `velocityPeak`, update the peak
+    (the key is still accelerating downwards). **Note On** on the first scan
+    where `velocity > velocityPeak × (1 − VELOCITY_PEAK_DROP)`, i.e. the velocity
+    has climbed back towards zero by that fraction of the peak. Example with
+    the final value 0.1 and a peak of −30,000: Note On as soon as the velocity
+    is above −27,000. Store the reading as `pressBottomReading`.
+  - While `PLUCK`: track the lowest reading in `pressBottomReading`. **Note Off**
+    when `reading > bottom + VELOCITY_OFF_FRACTION × (pressStartReading −
+    bottom)`, i.e. the key has come back up that fraction of the way from the
+    bottom of the press to where it started.
+  - Same `jackStates` gating, so Note On / Note Off strictly alternate. The
+    stored per-key thresholds are not used.
+- `VELOCITY_WINDOW` changed from 12 to **5**, with a comment explaining its
+  effect on detection timing and noise.
+- Velocity plot view: new constant line `A` at −`VELOCITY_ON_THRESHOLD`.
+- Boot summary prints `Detection: Position/Velocity`; capture header has
+  `# detection:`.
+- `tools/press_capture.py monitor`: key `d` forwards `d` to the board, and the
+  title shows the detection mode reported by the board.
+- `INSTRUCTIONS.md`: new section 6.6 (how it works, switching, checking,
+  settings); `d` added to the key and command tables, `A` to the velocity view,
+  window value updated to 5.
+
+**Values.** Started from the simulation (arm 12,000, drop 0.2), then tuned on
+the instrument (key 47 / E2, moved sticker):
+
+| Setting | Simulation start | Final | Meaning |
+|---|---|---|---|
+| `VELOCITY_WINDOW` | 5 | **5** | velocity fit length; lag ≈ (window − 1) / 2 scans |
+| `VELOCITY_ON_THRESHOLD` | 12,000 | **15,000** | arm level (−15,000 units/s); further from the noise at rest (down to about −6,800 with window 5) |
+| `VELOCITY_PEAK_DROP` | 0.2 | **0.1** | Note On when the velocity is back at 90% of the peak instead of 80%, i.e. sooner after the peak (at most about one scan, 2 ms, earlier) |
+| `VELOCITY_OFF_FRACTION` | 0.75 | **0.75** | Note Off when the key is 75% of the way back up |
+
+**Verification.** Offline simulation on the 4 recordings (above). The monitor's
+`d` key was tested against a simulated serial port. Tested on the instrument
+with the values above: velocity detection works well on key 47. Note On may
+still be slightly late. The remaining options to make it earlier are
+`VELOCITY_WINDOW` 4 (about one scan less lag; 3 was too noisy), or firing as
+soon as the arm level is crossed instead of after the peak (a code change, not
+implemented). Only key 47 has the moved sticker so far, so the values have not
+been checked on other keys.
+
+## 18. Detection method and velocity threshold from the encoder, saved in FRAM
+
+**Purpose.** Switch between position and velocity detection, and set the
+velocity arm threshold, without a computer. Each method's calibration is
+started from the encoder.
+
+**Encoder** (`rotary_functions.ino`). Two new `RotaryMode`s:
+`DETECTION_SELECT` and `EDIT_VELOCITY_THRESHOLD`. The click cycle now depends on
+the detection mode:
+- position: key select → pluck → release → **detection select** → key select …
+- velocity: key select → **velocity threshold** → **detection select** → key select …
+
+In `DETECTION_SELECT` (bounds 0–1), turning switches the method through
+`setDetectionMode()`, which releases sounding notes. The whole strip shows the
+choice: dim green = position, dim orange = velocity (`showDetectionSelectLeds()`).
+In `EDIT_VELOCITY_THRESHOLD`, turning sets the threshold in steps of 500
+(1000–60000), with the selected key lit orange. The `A` line in the velocity plot
+follows the value. Double-click restores the strip correctly in detection
+select. The deprecated `SINGLE_THRESHOLD` cycle is unchanged.
+
+**Velocity threshold is now a variable.** `VELOCITY_ON_THRESHOLD` (`#define`) is
+replaced by `uint16_t velocityOnThreshold` (one value for all keys), with
+`DEFAULT_VELOCITY_ON_THRESHOLD` (15000) and `VELOCITY_ON_THRESHOLD_MIN` / `MAX` /
+`STEP` for the encoder. `VELOCITY_PEAK_DROP` stays a `#define` (encoder control
+for it may be added later).
+
+**Saved in FRAM** (`eeprom_functions.ino`). Two new tagged blocks are placed
+**after** the register, so existing addresses and stored calibration do not move:
+`VTHR` + `velocityOnThreshold` (2 bytes) and `DETM` + `detectionMode`. The new
+`writeVelocitySettingsToEEPROM()` writes both, setting write enable before each
+write. It is called from `writePluckToEEPROM()`, so double-click and leaving
+calibration mode save them together with the key thresholds. At boot,
+`readPluckFromEEPROM()` loads them. If a tag is missing (chip written by older
+firmware) or a value is out of range, it uses the defaults (threshold 15000,
+position detection) and writes them. **Change of behaviour from section 17:**
+the detection mode is now remembered across restarts once saved. Before, it
+always started in position detection.
+
+**Other.**
+- If the mode is switched over serial (`d`) while in detection select, the
+  encoder position and strip are updated to match.
+- The boot summary also prints `Velocity threshold:`.
+- `INSTRUCTIONS.md`: section 4 rewritten (both cycles, new encoder modes and LED
+  colours, workflows for position and velocity); section 6.6 (switching from the
+  encoder, saving, checking the threshold); LED table.
+
+**Verification.** Not compiled here and not yet tested on the instrument.
+
 ---
 
 ## Background: 12-bit vs 13-bit readings

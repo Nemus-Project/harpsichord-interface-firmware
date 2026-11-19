@@ -267,7 +267,7 @@ def capture(args):
 # Monitor: live plot (replaces the Arduino Serial Plotter) + automatic saving
 
 PLOT_TOKEN = re.compile(r"^([A-Za-z]+\d*):(-?\d+(?:\.\d+)?)$")
-MONITOR_KEYS = ("r", "v", "p", "l", "q")
+MONITOR_KEYS = ("r", "v", "p", "d", "l", "q")
 DEFAULT_LABELS = "soft,normal,hard,very-hard,no-pluck,barely-pluck"
 
 
@@ -314,7 +314,8 @@ def monitor(args):
             plt.rcParams[name] = [k for k in plt.rcParams[name] if k not in MONITOR_KEYS]
 
     labels = [l.strip() for l in args.labels.split(",") if l.strip()] or [""]
-    st = {"label": 0, "armed": False, "receiving": False, "saved": 0, "error": None}
+    st = {"label": 0, "armed": False, "receiving": False, "saved": 0, "error": None,
+          "detection": "? (press d to switch and show)"}
 
     ser = serial.Serial(args.port, BAUD, timeout=0.2)
     ser.reset_input_buffer()
@@ -332,6 +333,8 @@ def monitor(args):
             send("v")
         elif event.key == "p":
             send("p")
+        elif event.key == "d":
+            send("d")  # the firmware toggles position / velocity detection
         elif event.key == "l":
             st["label"] = (st["label"] + 1) % len(labels)
         elif event.key == "q":
@@ -413,6 +416,8 @@ def monitor(args):
                         st["armed"] = True
                     elif line.startswith("[CAPTURE] cancelled"):
                         st["armed"] = False
+                    elif line.startswith("Detection: "):
+                        st["detection"] = line.split(":", 1)[1].strip()
 
             # Make sure the board is streaming plot data (toggle once if not)
             if not stream_checked and time.time() - started > 1.5:
@@ -446,8 +451,10 @@ def monitor(args):
             else:
                 status = "live"
             live.suptitle(
-                f"label: {labels[st['label']] or '-'}    saved: {st['saved']}    {status}\n"
-                "r = record press    l = next label    v = position/velocity    p = stream on/off    q = quit",
+                f"detection: {st['detection']}    label: {labels[st['label']] or '-'}    "
+                f"saved: {st['saved']}    {status}\n"
+                "r = record    l = next label    v = position/velocity view    "
+                "d = position/velocity detection    p = stream on/off    q = quit",
                 fontsize=10)
             plt.pause(0.05)
     finally:

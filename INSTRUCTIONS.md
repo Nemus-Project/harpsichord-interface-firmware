@@ -48,6 +48,8 @@ to 1). Positions 1, 2, 48 and 49 are unused, with no key above them.
    ```
    Firmware Version: 0.2.2
    Threshold Type: Hysteretic
+   Detection: Position   ← or "Velocity" (section 6.6)
+   Velocity threshold: 15000
    Jack Register: Back
    Mode: Standard        ← "DEBUG" if it started in calibration mode
    ```
@@ -88,46 +90,75 @@ starts when you **release** it, and the blue LED turns on.
 
 ## 4. Manual calibration (encoder)
 
-Only in calibration mode. Each key has two thresholds:
+Only in calibration mode. With the encoder you choose the **detection method**
+(position or velocity, section 6.6) and set what that method needs:
 
-- **Pluck:** when the reading falls below it, a Note On is sent.
-- **Release:** when the reading rises back above it, a Note Off is sent.
+- **Position detection:** each key has two thresholds.
+  - **Pluck:** when the reading falls below it, a Note On is sent.
+  - **Release:** when the reading rises back above it, a Note Off is sent.
 
-Release must be **above** pluck. Pressing a key makes its reading go **down**.
+  Release must be **above** pluck. Pressing a key makes its reading go **down**.
+- **Velocity detection:** one **velocity threshold** for all keys, the arm
+  level. No per-key thresholds.
 
 ### Controls
 
 | Action | Effect |
 |---|---|
 | **Turn** | Depends on the current encoder mode (table below). |
-| **Click** | Next encoder mode: Key select → Pluck → Release → Key select … |
-| **Double-click** | Save all thresholds to FRAM. The whole strip flashes blue briefly. Stays in calibration mode. |
+| **Click** | Next encoder mode (cycles below). |
+| **Double-click** | Save everything to FRAM: key thresholds, velocity threshold and detection method. The whole strip flashes blue briefly. Stays in calibration mode. |
 | **Hold 2 s** | Save and go back to Play mode (section 3.2). |
+
+**Click cycles:**
+
+- **Position detection:** Key select → Pluck → Release → **Detection select** → Key select …
+- **Velocity detection:** Key select → **Velocity threshold** → **Detection select** → Key select …
+
+In **Detection select** you switch method by turning. The next click starts the
+cycle of the method you chose.
 
 | Encoder mode | Strip LED colour | Turning does |
 |---|---|---|
-| **Key select** | blue | Selects a key, one per step. Starts on key 47 (E2 on the back register, C6 on the front). |
-| **Pluck threshold** | green | Changes the selected key's pluck threshold in steps of 10. |
-| **Release threshold** | purple | Changes the selected key's release threshold in steps of 10. |
+| **Key select** | blue (selected key) | Selects a key, one per step. Starts on key 47 (E2 on the back register, C6 on the front). |
+| **Pluck threshold** | green (selected key) | Changes the selected key's pluck threshold in steps of 10. |
+| **Release threshold** | purple (selected key) | Changes the selected key's release threshold in steps of 10. |
+| **Velocity threshold** | orange (selected key) | Changes the velocity threshold (all keys) in steps of 500, from 1000 to 60000. The `A` line in the velocity view moves with it. |
+| **Detection select** | **whole strip**: green = position, orange = velocity | One step either way switches method. Any sounding note is released first. |
 
-Threshold values range from 0 to 8190.
+Key threshold values range from 0 to 8190.
 
 Changes take effect **immediately** while you play, but are only kept in memory
 until saved. To **discard** unsaved changes, press the board's **reset button**
 instead of saving.
 
-### Workflow
+### Workflow: position detection
 
 1. Enter calibration mode (section 3).
 2. Open the **live plot** (section 6) to see the selected key's reading and
    thresholds.
-3. In key select (blue), turn to the key.
-4. Click → pluck (green), and turn until the green line is where you want the
+3. If the strip isn't in position mode yet, click until the whole strip lights
+   up (detection select), turn to **green**, and click.
+4. In key select (blue), turn to the key.
+5. Click → pluck (green), and turn until the green line is where you want the
    note to start.
-5. Click → release (purple), and turn until the release line sits above pluck,
+6. Click → release (purple), and turn until the release line sits above pluck,
    where you want the note to stop.
-6. Click → back to key select, and choose the next key.
-7. Double-click to save, or hold 2 s to save and return to Play mode.
+7. Click → detection select (whole strip green), click again → key select, and
+   choose the next key.
+8. Double-click to save, or hold 2 s to save and return to Play mode.
+
+### Workflow: velocity detection
+
+1. Enter calibration mode and open the live plot in the **velocity view**
+   (section 6, key `v` in the Python plotter).
+2. Click until the whole strip lights up (detection select), turn to
+   **orange**, and click.
+3. In key select (blue), pick a key to watch in the plot.
+4. Click → velocity threshold (orange). Turn to move the `A` line: presses
+   should dip clearly below it, and the trace at rest should stay well above it.
+5. Click → detection select, click again → key select to watch another key.
+6. Double-click to save, or hold 2 s to save and return to Play mode.
 
 ---
 
@@ -221,6 +252,7 @@ pip install pyserial
 |---|---|
 | `v` | switch between the **position** view and the **velocity** view |
 | `p` | live stream on/off |
+| `d` | switch note detection between **position** and **velocity** (section 6.6) |
 | `r` | record one press (section 6.4) |
 | `l` | next recording label |
 | `q` | quit (closing the window works too) |
@@ -281,6 +313,7 @@ A healthy key looks like this:
 | `V<n>` | velocity of key *n*, in reading units per second |
 | `L<n>` | lowest velocity of key *n* since its last Note Off |
 | `Z` | zero line |
+| `A` | velocity detection arm level (section 6.6) |
 | `m` / `M` | fixed scale at −/+ 15,000 units per second |
 
 - **Below zero:** the key is going **down**.
@@ -303,11 +336,11 @@ The scale is fixed, so noise at rest appears at its real size compared to a key
 press. A faster movement extends the plot beyond the scale. The range is set by
 `VELOCITY_PLOT_RANGE` in the code. The velocity is the slope of a straight line
 fitted through the last `VELOCITY_WINDOW` samples, so it lags the movement by
-about (`VELOCITY_WINDOW` − 1) / 2 scans. The window is currently **12 samples**
-(about 5.5 scans of lag), but this is still being tuned and may change. It can be
-set from 2 to 32 in the code: fewer samples react faster but are noisier, more
-samples are smoother but react later. It does not affect the readings or note
-detection.
+about (`VELOCITY_WINDOW` − 1) / 2 scans. The window is currently **5 samples**
+(about 2 scans of lag), chosen for velocity detection (section 6.6); it is still
+being tuned and may change. It can be set from 2 to 32 in the code: fewer samples
+react faster but are noisier, more samples are smoother but react later. It does
+not affect the readings or position detection.
 
 ### 6.4 Recording a press (`r`)
 
@@ -360,8 +393,8 @@ python3 tools/press_capture.py capture --port /dev/cu.usbmodem1101 --label soft 
 
 ### 6.5 Serial commands (calibration mode)
 
-In the Python plotter, `v`, `p` and `r` are sent for you. In the Arduino IDE,
-type them in the Serial Monitor / Plotter message box.
+In the Python plotter, `v`, `p`, `r` and `d` are sent for you. In the Arduino
+IDE, type them in the Serial Monitor / Plotter message box.
 
 | Send | Effect |
 |---|---|
@@ -371,6 +404,7 @@ type them in the Serial Monitor / Plotter message box.
 | `f` | Switch to the **front** register and save it to FRAM. |
 | `b` | Switch to the **back** register and save it to FRAM. |
 | `r` | Record one press of the selected key (6.4). Send again to cancel. |
+| `d` | Switch note detection between position and velocity (6.6). |
 
 `f` / `b` print the active register (`Jack Register: Front` / `Back`). Any note
 sounding at that moment is released first, so nothing hangs. Thresholds belong
@@ -381,6 +415,62 @@ other register, recalibrate, because the jacks sit differently.
 quit the plotter and use the Arduino IDE Serial Monitor.
 
 Other characters are ignored. In Play mode, serial input is ignored entirely.
+
+### 6.6 Velocity detection, experimental
+
+There are two ways to decide when a note starts and stops. Switch between them
+in calibration mode either:
+- **with the encoder:** click to **Detection select** (whole strip lit) and turn.
+  Green = position, orange = velocity (section 4).
+- **over serial:** send `d` (key `d` in the Python plotter).
+
+The board prints `Detection: Position` or `Detection: Velocity`, and the
+plotter title shows it.
+
+| | Position detection (default) | Velocity detection |
+|---|---|---|
+| **Note On** | the reading falls below the key's pluck threshold | just after the jack's **velocity peak** on the way up |
+| **Note Off** | the reading rises above the key's release threshold | the key has come back up 75% of the way to where the press started |
+| **Calibration** | needed (sections 4–5) | **not needed**: everything is measured from each press |
+
+**How velocity detection works**, per key:
+1. A press **starts** when the velocity falls below the arm level: the velocity
+   threshold, set with the encoder (`A` line in the velocity view, default
+   −15,000).
+2. The firmware follows the velocity down to its lowest point (the peak).
+3. **Note On** is sent as soon as the velocity has come back up by 10% from that
+   peak, i.e. just after the peak. For example, with a peak of −30,000, Note On
+   comes as soon as the velocity is above −27,000.
+4. **Note Off** is sent when the key has come back up 75% of the way from the
+   bottom of the press to where it started.
+
+Switching releases any sounding note first, so nothing hangs. It applies to both
+play and calibration mode. The detection method and the velocity threshold are
+**saved** together with the key thresholds (double-click, or leaving calibration
+mode), so the board starts with the method you saved. A board that has never
+saved them starts in position detection with threshold 15000.
+
+**Checking it:** in the velocity view, every press should dip clearly below the
+`A` line, and the trace at rest should stay well above it.
+- If notes trigger without pressing, the noise reaches the `A` line: turn the
+  velocity threshold **up**.
+- If soft presses don't sound, they don't reach the `A` line: turn it **down**.
+
+The velocity threshold decides *whether* a press is caught, not *when* the note
+fires (that is the peak). Keep it clear of the noise at rest (down to about
+−6,800 with window 5).
+
+**Settings in the code** (`haptic_harpsichord.ino`, need a re-flash):
+
+| Setting | Default | Effect |
+|---|---|---|
+| `DEFAULT_VELOCITY_ON_THRESHOLD` | 15000 | velocity threshold used until one has been saved from the encoder; the encoder range is `VELOCITY_ON_THRESHOLD_MIN`–`MAX` (1000–60000), step `VELOCITY_ON_THRESHOLD_STEP` (500) |
+| `VELOCITY_PEAK_DROP` | 0.1 | Note On when the velocity is back at (1 − value) × peak, i.e. 90% of the peak. Smaller = earlier (at most about one scan, 2 ms) but more sensitive to noise near the peak |
+| `VELOCITY_OFF_FRACTION` | 0.75 | how far back up the key must come for Note Off |
+| `VELOCITY_WINDOW` | 5 | velocity smoothing; larger makes the Note On later (12 was ~6 ms later than position detection), smaller makes it noisier (3 was too noisy) |
+
+Tested so far only on the lowest key (E2) with the moved sticker, and in an
+offline simulation of 4 recordings.
 
 ---
 
@@ -393,7 +483,10 @@ Other characters are ignored. In Play mode, serial input is ignored entirely.
 | blue (one key) | calibration: key select, selected key |
 | green (one key) | calibration: editing pluck |
 | purple (one key) | calibration: editing release |
-| all blue, brief flash | thresholds saved (double-click) |
+| orange (one key) | calibration: editing the velocity threshold |
+| all dim green | calibration: detection select, position detection chosen |
+| all dim orange | calibration: detection select, velocity detection chosen |
+| all blue, brief flash | settings saved (double-click) |
 | all magenta | auto-cal phase 1, don't touch |
 | dim / bright green | auto-cal phase 2: waiting / key detected |
 | yellow | auto-cal: key skipped |

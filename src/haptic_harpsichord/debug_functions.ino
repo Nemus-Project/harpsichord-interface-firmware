@@ -82,7 +82,7 @@ void hystereticDebugLoop() {
     rotary.loop();
     button.loop();
 
-    processHysteretic();
+    processNotes();
     updateCapture();
 
    if (Serial.available()) {
@@ -93,6 +93,7 @@ void hystereticDebugLoop() {
    else if (c == 'b') changeJackRegister(BACK_REGISTER);
    else if (c == 'v') plotVelocity = !plotVelocity;
    else if (c == 'r') toggleCapture();
+   else if (c == 'd') setDetectionMode(detectionMode == VELOCITY_DETECTION ? POSITION_DETECTION : VELOCITY_DETECTION);
   }
 
     if (shouldPrint) {
